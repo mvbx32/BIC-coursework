@@ -1,6 +1,8 @@
+import numpy as np
 
-
-
+# To do : choose how to consider the fitness (LOW = GOOD ?), change the order relation in consequence
+# Unittests 
+#
 class Particle():
 
     """
@@ -10,6 +12,8 @@ class Particle():
 
     """
     ANN_struture = None
+    best_fitness = -1*np.inf
+    fittest_solution = None
     
     def __init__(self, params, vel):  # To test # To do : give a default random params value
         # params
@@ -26,7 +30,7 @@ class Particle():
 
         self.fitness = 0
         self._best_fitness = None
-        self._fitest_location = self.__vector
+        
 
         self.shape = None 
 
@@ -34,9 +38,9 @@ class Particle():
 
         self.x_informant = None # Particle Type 
         #If we are at t, and looking into xi "previous best ..." could it be xi_1(t) ????
-        self.xbest = None
-        self.xInformantBest = None # set as self.x_informant.xbest 
-        self.allXBest = None 
+        self.best_x =  self.__vector  
+        self.best_informant = None # set as self.x_informant.xbest 
+        if Particle.fittest_solution == None  : Particle.fittest_solution = self.__vector
 
     
   
@@ -72,7 +76,11 @@ class Particle():
     def fitness(self, new_fitness):  # To test
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
-            self._fitest_location = self.vector
+            self.best_x = self.vector
+
+            if new_fitness > Particle.best_fitness : 
+                Particle.best_fitness = new_fitness
+                Particle.fittest_solution = self.vector
             
         self.__fitness = new_fitness
 
