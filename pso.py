@@ -21,7 +21,7 @@ from particle import Particle
 #   # social influence ; c2 = 1.49445 
 # Set research Parameters as default
 
-# -     Setup logs + Saving of intermediar / finall models 
+# -     Setup logs + Saving of intermediar / final models 
 
 
 # ==            ANN         == 
