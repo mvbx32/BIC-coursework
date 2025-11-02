@@ -19,8 +19,8 @@ class ANN:
     @property
     def layer_size(self):
         """
-        Retourne la liste des tailles de chaque couche (entrée, couches cachées..., sortie).
-        Infère les tailles à partir des poids si l'attribut original n'a pas été stocké.
+        Returns the list of sizes of each layer (input, hidden layers..., output).
+        Infers sizes from weights if the original attribute was not stored.
         """
         # If the original sizes were stored elsewhere, prefer that
         if hasattr(self, "_layer_sizes") and self._layer_sizes is not None:
