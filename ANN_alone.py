@@ -11,13 +11,25 @@ class Activation:
 class Layer:
     # Initialize random weights and bias
     def __init__(self, n_input, n_output, activation):
-        self.W = np.random.randn(n_input, n_output)
+
+        # Weight representation in self.W :
+        #
+        #                   Neuron1   Neuron2  ...        Neuron n_input
+        # Weight 1              .          .                    .
+        # Weight 2              .           .   ...             .           
+        #   ...
+        # Weight n_output       .           .                   .
+
+        self.W = np.random.randn(n_input, n_output) # n_input : number of input for each neuron ; 
+                                                    # n_output : number of neurons
         self.b = np.random.randn(n_output)
         self.activation = getattr(Activation, activation)
 
+
+
 class ANN:
     @property
-    def layer_size(self): #???
+    def layer_size(self): #??? #get_attr
         """
         Returns the list of sizes of each layer (input, hidden layers..., output).
         Infers sizes from weights if the original attribute was not stored.
