@@ -1,9 +1,7 @@
 import numpy as np
 
-# To do : choose how to consider the fitness (LOW = GOOD ?), change the order relation in consequence
-# Let us consider a High fitness as GOOD
-# Unittests 
-#
+# Clean the code recursively
+
 class Particle():
 
     """
@@ -16,31 +14,32 @@ class Particle():
     # == Common variables == 
 
     ANN_struture = None
-    best_fitness = -1*np.inf 
+    
     fittest_solution = None
+    best_fitness = -1*np.inf 
+
+    ANN2Vector = callable
+    
     
     def __init__(self, params, vel):  # To test # To do : give a default random params value
-        # params
+    
+        # * Error * 
         assert(Particle.ANN_struture == None) # -- Error Msg : ANN_structure undefined --
         
-        # instantiation of the ANN
+        # Instantiation of the ANN used to compute the fitness
         self.ANN_model = None
-
-        # -- instantiation with the parameters -- # ANN implementation , To do : is it easier to gen ANN from the vector ? Depends on Arthur implementation
-        self.vector = None # np.array type
-        # find the corresponding vector representation
+        
+        # Find the corresponding vector representation
         self.vector = self.get_parameters_vector(self.ANN_model)
+        self.shape = None 
+
         self.velocity = 0
 
         self.fitness = 0
         self._best_fitness = None
-        
-
-        self.shape = None 
 
         # == PSO variables == 
-
-        self.x_informant = None # Particle Type 
+        self._informants = None # list of Particle Type 
 
         # TODO : If we are at t, and looking into xi "previous best ..." could it be xi_1(t) ????
         self.best_x =  self.__vector  
@@ -69,6 +68,18 @@ class Particle():
                 Particle.fittest_solution = self.vector
             
         self.__fitness = new_fitness
+
+    @property
+    def informants(self): # To test
+        return self._informants
+    
+    @informants.setter
+    def informants(self,new_informants):  # To test    
+        self._informants  = new_informants
+        for infor in new_informants : 
+            if infor.fitness > self.best_informant.fitness : 
+                self.best_informant.fitness  = infor
+    
 
     def AssessFitness(self):  # To test
         #

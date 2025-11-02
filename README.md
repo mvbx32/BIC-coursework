@@ -8,7 +8,7 @@ Coursework for the Biological Inpirational Computing course at Heriot Watt Unive
 Due date : 28th of November
 
 Planning : ## to define 
-
+![alt text](image.png)
 
 ### Authors
 mv4014@hw.ac.uk
