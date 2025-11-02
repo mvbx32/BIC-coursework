@@ -17,7 +17,7 @@ class Layer:
 
 class ANN:
     @property
-    def layer_size(self):
+    def layer_size(self): #???
         """
         Returns the list of sizes of each layer (input, hidden layers..., output).
         Infers sizes from weights if the original attribute was not stored.
@@ -40,6 +40,7 @@ class ANN:
         assert len(layer_sizes) - 1 == len(activations), \
             "the total of activation functions must be equal to the number of hidden layers + output layer"
 
+        self.layer_sizes = layer_sizes
         # Create successive layers
         self.layers = [
             Layer(layer_sizes[i], layer_sizes[i+1], activations[i])
