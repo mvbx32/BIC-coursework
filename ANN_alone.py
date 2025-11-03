@@ -7,6 +7,9 @@ class Activation:
     def relu(x): return np.maximum(0, x)
     @staticmethod
     def tanh(x): return np.tanh(x)
+    @staticmethod
+    def linear(x): return x
+
 
 class Layer:
     # Initialize random weights and bias
