@@ -3,30 +3,14 @@ import time
 import random 
 import numpy as np
 from particle import Particle
+import pandas as pd
+import tqdm
+import xlrd
 
-# TODO : 
-
-#-      Clarrify the definition of the Fitness etc in the Particle Class
-
-#-       Setup data importation
-#- ADD ANN implementation
-# Write example function for the Fitness 
-
-# - TEST    Unittest (GPT)
-
-# Find PSO examples / recommendation (course material)
-
-# -  Parameters 
-# Find similar work (search by parameter and define them)   
-#   # social influence ; c2 = 1.49445 
+# TODO : Solve Issue of non homogeneity vector - Particle
 # Set research Parameters as default
 
 # -     Setup logs + Saving of intermediar / final models 
-
-
-# ==            ANN         == 
-
-#
 
 #==             Data        == 
 
@@ -45,17 +29,30 @@ from particle import Particle
 #---Outputs 
 #Concrete compressive strength	Target	Continuous		MPa	no
 
-# TODO 
 # Advice : 70% for training, 30% for test 
+data = np.array(pd.read_excel("data/Concrete_Data.xls"))
 
-train_data  = []
-test_data = []
+# TODO : shuffle the data randomly with a given random seed
+
+sets_index = int(data.shape[0]*0.7)
+train_data = data[:sets_index,:] # samples
+test_data = data[sets_index:,:]
+
+
+X_train = train_data[:,:-1]
+X_test =  test_data[:,:-1]
+
+Y_train = train_data[:,-1]
+Y_test = test_data[:,-1] 
 
 
 #==                 LOGS                ==
 def logexport():
     pass
 
+
+
+# ==            ANN         == 
 
 
 # ==           PSO          == 
@@ -83,8 +80,7 @@ def PSO(swarmsize,
         gamma,
         delta,
         epsi, 
-        ANN, 
-        ANN2Vector,
+        ANNStructure, 
         AssessFitness, 
         informants_number, 
         Informants, 
@@ -92,8 +88,9 @@ def PSO(swarmsize,
         verbose = 1) : 
     
     # == Definition of the particle structure (ANN structure) ==
-    Particle.ANN_struture = None  # given by an ANN instantiation
-    
+    Particle.ANN_structure = ANNStructure  # given by an ANN instantiation
+    Particle.AssessFitness = AssessFitness
+    Particle.Informants = Informants
 
     # == PSO parameters == 
     swarmsize = swarmsize #           #10 -100                              [l1]
@@ -102,7 +99,7 @@ def PSO(swarmsize,
     beta = beta   #                                            [l3]
     gamma = gamma  #                                            [l4]
     delta = delta    #                                          [l5]
-    epsilon = epsilon   #                                         [l6]
+    epsilon = epsi   #                                          [l6]
     criteria = 1
 
     P = []      #                                           [l7]
@@ -113,76 +110,98 @@ def PSO(swarmsize,
 
     t0 = time.time()
     it = 0 
-    while True : #                                          [l11]
-        try : 
-            # == Determination of the Best == 
-            for x in P : #                                      [l12]
-                AssessFitness(x) #                              [l13]
-                if Best == None or x.fitness > Best.fitness : # [l14]
-                    Best = x #                                  [l15]
+    for loop in tqdm.tqdm(range(max_iteration_number), disable=not verbose): #      [l11]
+        print("Loop n°",loop)
+        #try : 
+        # == Determination of the Best == 
+        for x in P : #                                      [l12]
+            AssessFitness(x) #                              [l13]
+            if type(Best) != Particle or x.fitness > Best.fitness : # [l14]
+                Best = x #                                  [l15]
 
-            # == Determination of each velocities == 
-            for x in P : # [l16]
-                vel = x.velocity
-                vector = x.vector
-                new_vel = np.zeros_like(x.vector)
+        # == Determination of each velocities == 
+        for x in P : # [l16]
+            vel = x.velocity
+            vector = x.vector
+            new_vel = np.zeros_like(x.vector)
 
-                # == Update of the fittest per catergory (x*,xplus, x!) ====
-                xstar = x.best_x                #               [l17]
-                # definition of the informants
-                x.x_informants = Informants(x,P) 
-                xplus = x.best_informant        #               [l18]
-                xmark = Particle.fittest_solution #             [l19]
+            # == Update of the fittest per catergory (x*,xplus, x!) ====
+            xstar = x.best_x.vector            #               [l17]
+            # definition of the informants
+            x.x_informants = Informants(x,P,informants_number) 
+            xplus = x.best_informant.vector      #               [l18]
+            xmark = Particle.fittest_solution.vector #             [l19]
 
-                for i in range(p.vector.shape[0]) : #           [l20] p.vector[i] = 1 works ? z
-                    b = np.random(0,1) * beta   #               [l21]
-                    c = np.random(0,1) * gamma  #               [l22]
-                    d = np.random(0,1) * delta  #               [l23]
-                    new_vel[i,:] = alpha*vel[i,:] + b* (xstar - vector[i] ) + c* (xplus - vector[i]) + d * (xmark - vector[i]) # [l24]
+            for i in range(x.vector.shape[0]) : #           [l20] p.vector[i] = 1 works ? z
+                b = random.random() * beta   #               [l21]
+                c = random.random() * gamma  #               [l22]
+                d = random.random() * delta  #               [l23]
+                new_vel[i,:] = alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
 
-            # == Mutation ==   
-            for x in P : #                                      [l25]
-                x.vector = x.vector + epsilon*x.velocity #      [l26]
+        # == Mutation ==   
+        for x in P : #                                      [l25]
+            x.vector = x.vector + epsilon*x.velocity #      [l26]
 
-            if Particle.best_fitness > criteria or it <=max_iteration_number: break # [l27]
+        #if Particle.best_fitness > criteria : break # [l27]
 
-        except Exception as e:
+        """  except FileNotFoundError as e:
+            print("Error",e)
             pass
         finally : 
             # Export logs 
             logexport()
-            break
+            break """
     
     return Particle.fittest_solution # Vector representation
 
+def ANN2Vector(ANNstructure):
+    pass
+
+def Informants(x,P, informants_number):
+    # x Particle 
+    # P set of Particle
+
+    # 2nd idea suggested in Lecture 7 : random subset of P
+    return random.sample(P, informants_number)
+
+def AssessFitness(x): # funct input
+
+    """  # MSE 
+    y # known
+    mse = 0
+    for k in range() :    
+        err = y - x.ANN_model.forward()
+        mse += np.abs(err)
+
+    mse = mse  / N 
+
+    return mse """
+    
+    return np.inf *-1
+    
 if __name__ == "__main__" : 
 
     # %% Example 1 
     
-    def ANN2Vector(ANNstructure):
-        pass
-
     def Informants(x,P, informants_number):
         # x Particle 
         # P set of Particle
-
         # 2nd idea suggested in Lecture 7 : random subset of P
         return random.sample(P, informants_number)
     
-    def AssessFitness(x): # funct input
-
-       """  # MSE 
-        y # known
+    def AssessFitness(x):
+        # arbitrary choice !!
         mse = 0
-        for k in range() :    
-            err = y - x.ANN(x)
+        for k in range(Y_train.shape[0]) :    
+            err = Y_train[k] - x.ANN_model.forward(X_train[k])
             mse += np.abs(err)
+        mse = mse  / Y_train.shape[0]
 
-        mse = mse  / N 
-
-        return mse """
+        return mse
        
-       return " "
+    
+    ANNStructure = [8,5,1]
+   
     
 
     swarmsize = 10 # between 10 - 100
@@ -202,6 +221,18 @@ if __name__ == "__main__" :
     
     #== PSO == 
 
-
+    p = PSO(swarmsize, 
+        alpha, 
+        beta, 
+        gamma,
+        delta,
+        epsi, 
+        ANNStructure, 
+        AssessFitness, 
+        informants_number, 
+        Informants, 
+        max_iteration_number = 2000, 
+        verbose = 1)
+    print(p)
     #== Test == 
 
