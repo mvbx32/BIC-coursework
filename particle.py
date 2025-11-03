@@ -19,7 +19,7 @@ class Particle():
     Informants    = callable
     
     # -- X! -- 
-    fittest_solution = None
+    fittest_solution = None # Particle type
     best_fitness = -1*np.inf     
     
     def __init__(self):  # To test # To do : give a default random params value
@@ -47,23 +47,24 @@ class Particle():
         self.velocity = np.zeros_like(self.vector)
 
         # Instantiation of the ANN used to compute the fitness
-        self.ANN_model = ANN(layer_sizes = Particle.ANN_structure, activations=["relu","relu"]) 
+        self.ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["relu" for loop in range(len(Particle.ANN_structure)-1)])
+        self.ANN_model = self.vector2ANN()
     
         
         
         # -- X* --
         self._best_fitness = -1*np.inf # integrate the FItness function to the class sinon, initialisant à np.inf on peut passer à côté de la solution
-        self.best_x =  self.vector  
+        self.best_x =  self             # Particle type
 
         self._informants = [self] # list of Particle Type 
 
         # ??? Previous
         
         # -- X+ -- 
-        self.best_informant =  self  # set as self.x_informant.xbest 
-        if type(Particle.fittest_solution) != np.array  : Particle.fittest_solution = self.vector
+        self.best_informant =  self     # Particle type  
+        if type(Particle.fittest_solution) != np.array  : Particle.fittest_solution = self # Particle type
 
-        self.fitness = Particle.AssessFitness(self)
+        self.fitness = Particle.AssessFitness(self) # initialise the fitness
 
     def __eq__(self, other): 
         if not((self.vector - other.vector).all()) :
@@ -77,20 +78,31 @@ class Particle():
     
     @vector.setter
     def vector(self,v):
-        self.vector = v
+
+        self._vector = v
         # preparation of the ANN model for the fitness calculus
         self.ANN_model = self.vector2ANN()
     
 
     # ==   ANN     == 
     def vector2ANN(self):
+            # Weight representation in the Layer class : for a given kth layer
+        #
+        #      \             Neuron1   Neuron2  ...        Neuron n_input
+        # Weight 1              .          .                    .
+        # Weight 2              .           .   ...             .           
+        #   ...
+        # Weight n_output       .           .                   .
+        ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["relu" for loop in range(len(Particle.ANN_structure)-1)])
+        
+        assert(ANN_model.layer_sizes == self.ANN_model.layer_sizes) #  Error : ANN structure had been changed
         i = 0
-        for k in range(1,len(self.ANN.layers)) :                      # for each layer
-            for l in range(len(self.ANN.layers[i])):                    # for each neuron of the layer
-                for j in range(len(self.ANN.layers[i-1])) :               # for each input of the neuron
-                    self.ANN.layers[i].W[j,l]= self.vector[i]
+        for k in range(1,len(ANN_model.layers)) :                      # for each layer
+            for l in range(ANN_model.layers[k].n_neuron):                    # for each neuron of the layer
+                for j in range(ANN_model.layers[k].n_input) :               # for each input of the neuron
+                    ANN_model.layers[k].W[j,l]= self.vector[i]
                     i+=1
-
+        return ANN_model
         
     # == Fitness == 
     @property
@@ -105,7 +117,8 @@ class Particle():
         # x*
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
-            self.best_x = self.vector
+            self.best_x = self
+
 
             # x+
             if new_fitness > self.best_informant.fitness : 
@@ -114,7 +127,7 @@ class Particle():
             # x!
             if new_fitness > Particle.best_fitness : 
                 Particle.best_fitness = new_fitness
-                Particle.fittest_solution = self.vector
+                Particle.fittest_solution = self
 
     def assessFitness(self):
         self.fitness= Particle.AssessFitness(self)
@@ -145,6 +158,25 @@ class Particle():
     
 
 if __name__ == "__main__":
+    
+    def Informants(x,P, informants_number):
+        # x Particle 
+        # P set of Particle
+        # 2nd idea suggested in Lecture 7 : random subset of P
+        return random.sample(P, informants_number)
+    
+    def AssessFitness(x):
+        # arbitrary choice !!
+        mse = 0
+        for k in range(Y_train.shape[0]) :    
+            err = Y_train[k] - x.ANN_model.forward(X_train[k])
+            mse += np.abs(err)
+        mse = mse  / Y_train.shape[0]
+
+        return mse
+       
     Particle.ANN_structure = [8,5,1]
+    Particle.AssessFitness = AssessFitness
+    Particle.Informants = Informants
     Particle()
 
