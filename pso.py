@@ -136,11 +136,11 @@ def PSO(swarmsize,
                 b = random.random() * beta   #               [l21]
                 c = random.random() * gamma  #               [l22]
                 d = random.random() * delta  #               [l23]
-                new_vel[i,:] = alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
+                new_vel[i] = alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
 
         # == Mutation ==   
         for x in P : #                                      [l25]
-            x.vector = x.vector + epsilon*x.velocity #      [l26]
+            x.vector = vector + epsilon*x.velocity #      [l26]
 
         #if Particle.best_fitness > criteria : break # [l27]
 
@@ -182,7 +182,6 @@ def AssessFitness(x): # funct input
 if __name__ == "__main__" : 
 
     # %% Example 1 
-    
     def Informants(x,P, informants_number):
         # x Particle 
         # P set of Particle
