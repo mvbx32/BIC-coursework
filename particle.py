@@ -71,6 +71,10 @@ class Particle():
             return True 
         return False
     
+    def __str__(self):
+        return str(self.vector)
+    
+
     # == Vector == 
     @property
     def vector(self) :
