@@ -2,12 +2,24 @@
 import time
 import random 
 import numpy as np
+import matplotlib.pyplot as plt
 from particle import Particle
 import pandas as pd
 import tqdm
 import xlrd
 
-# TODO : Solve Issue of non homogeneity vector - Particle
+# TODO : 
+# Set a linear activation function
+# Set a default activation function as linear when instantiating an ANN
+# Looks for biblio ressources to better understand how could be modeled the ANN : linear ? 
+# How to test the PSO ???
+#       - Compare a linear regression model with a linear ANN based PSO algorithm 
+#       - same with forward-backward
+
+# Additional features : sub class of particle to encode the activation function type
+
+# Report on the code structure
+
 # Set research Parameters as default
 
 # -     Setup logs + Saving of intermediar / final models 
@@ -87,6 +99,7 @@ def PSO(swarmsize,
         max_iteration_number = 2000, 
         verbose = 1) : 
     
+    BestFitnessList = []
     # == Definition of the particle structure (ANN structure) ==
     Particle.ANN_structure = ANNStructure  # given by an ANN instantiation
     Particle.AssessFitness = AssessFitness
@@ -115,7 +128,7 @@ def PSO(swarmsize,
         #try : 
         # == Determination of the Best == 
         for x in P : #                                      [l12]
-            AssessFitness(x) #                              [l13]
+            x.assessFitness() #                              [l13]
             if type(Best) != Particle or x.fitness > Best.fitness : # [l14]
                 Best = x #                                  [l15]
 
@@ -141,7 +154,7 @@ def PSO(swarmsize,
         # == Mutation ==   
         for x in P : #                                      [l25]
             x.vector = vector + epsilon*x.velocity #      [l26]
-
+           
         #if Particle.best_fitness > criteria : break # [l27]
 
         """  except FileNotFoundError as e:
@@ -151,8 +164,10 @@ def PSO(swarmsize,
             # Export logs 
             logexport()
             break """
+        
+        BestFitnessList.append(Particle.best_fitness)
     
-    return Particle.fittest_solution # Vector representation
+    return Particle.fittest_solution, BestFitnessList # Vector representation
 
 def ANN2Vector(ANNstructure):
     pass
@@ -182,6 +197,7 @@ def AssessFitness(x): # funct input
 if __name__ == "__main__" : 
 
     # %% Example 1 
+
     def Informants(x,P, informants_number):
         # x Particle 
         # P set of Particle
@@ -195,13 +211,11 @@ if __name__ == "__main__" :
             err = Y_train[k] - x.ANN_model.forward(X_train[k])
             mse += np.abs(err)
         mse = mse  / Y_train.shape[0]
-
+   
         return mse
        
     
     ANNStructure = [8,5,1]
-   
-    
 
     swarmsize = 10 # between 10 - 100
 
@@ -212,7 +226,7 @@ if __name__ == "__main__" :
     delta = 1 
 
     # Jump size/ learning rate  | Clue : ? 
-    epsi  = 0.3  # https://doi.org/10.1155/2020/8875922
+    epsi  = 0.3  # https://doi.org/10.1155/2020/8875922 0.3
     informants_number = 1 #arbitrary ; ? 
     
     max_iteration_number = 1200 # research paper  # https://doi.org/10.1155/2020/8875922
@@ -220,7 +234,7 @@ if __name__ == "__main__" :
     
     #== PSO == 
 
-    p = PSO(swarmsize, 
+    best_solution, best_glob_fitness = PSO(swarmsize, 
         alpha, 
         beta, 
         gamma,
@@ -230,8 +244,25 @@ if __name__ == "__main__" :
         AssessFitness, 
         informants_number, 
         Informants, 
-        max_iteration_number = 2000, 
+        max_iteration_number = 100, 
         verbose = 1)
-    print(p)
+    # How to check the correctness of the algorithm  ??
+    # Warning a lot of assumptions : the ANN structure might be inefficient 
+
+    plt.title("Fitness evolution")
+    plt.plot(best_glob_fitness,'*')
+    plt.show()
+    print(best_solution)
+    
     #== Test == 
+    plt.figure()
+    mse = 0
+    for k in range(Y_test.shape[0]) :    
+        err = Y_test[k] - best_solution.ANN_model.forward(X_test[k])
+        mse += np.abs(err)
+    mse = mse  / Y_test.shape[0]
+
+    print("Fitness", best_glob_fitness[-1], "MSE", mse)
+
+    # Compare with a forward backward algorithm
 
