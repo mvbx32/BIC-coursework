@@ -20,12 +20,22 @@ class Layer:
         #   ...
         # Weight n_output       .           .                   .
 
+        self.n_input = n_input
+        self.n_neuron = n_output
         self.W = np.random.randn(n_input, n_output) # n_input : number of input for each neuron ; 
                                                     # n_output : number of neurons
         self.b = np.random.randn(n_output)
         self.activation = getattr(Activation, activation)
 
+    def __eq__(self, value): 
 
+        assert(self.W.shape == value.W.shape) # error : unmatched dimensions
+
+        if not((self.W - value.W).all()) and not((self.b - value.b).all()) :
+            # if equal the resulting vector is null
+            return True 
+        return False
+            
 
 class ANN:
     @property
@@ -59,6 +69,14 @@ class ANN:
             for i in range(len(layer_sizes) - 1)
         ]
 
+    def __eq__(self, ANN2):
+        
+        for i in range(len(self.layers)) : 
+
+            if not(self.layers[i] == ANN2.layers[i]) : 
+                return False
+        return True
+    
     def forward(self, x):
         for layer in self.layers:
             x = np.dot(x, layer.W) + layer.b
