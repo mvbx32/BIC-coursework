@@ -9,6 +9,8 @@ import tqdm
 import xlrd
 
 # TODO : 
+# ???? !!!!!! LES POIDS DANS LA REPRESENTATION VECTORIELLE ETC...
+
 # Set a linear activation function
 # Set a default activation function as linear when instantiating an ANN
 # Looks for biblio ressources to better understand how could be modeled the ANN : linear ? 
@@ -212,8 +214,14 @@ if __name__ == "__main__" :
             mse += np.abs(err)
         mse = mse  / Y_train.shape[0]
    
-        return mse
+        return 1/mse
        
+    # ==        ANN         ==
+    # Hyperparameters
+    # number of hidden layer : depends on the problem complexity
+    # number of neurons per hidden layer : affects the generalisation (undefitting VS overfitting)
+    # activation functions : since we have a regression problem, 
+    # it is convenient to have a linear activation function in the output and others function in the hidden layer (lecture 2)
     
     ANNStructure = [8,5,1]
 
@@ -244,25 +252,31 @@ if __name__ == "__main__" :
         AssessFitness, 
         informants_number, 
         Informants, 
-        max_iteration_number = 100, 
+        max_iteration_number = 10, 
         verbose = 1)
     # How to check the correctness of the algorithm  ??
     # Warning a lot of assumptions : the ANN structure might be inefficient 
 
-    plt.title("Fitness evolution")
-    plt.plot(best_glob_fitness,'*')
-    plt.show()
-    print(best_solution)
     
     #== Test == 
     plt.figure()
     mse = 0
+
+    Y_test = Y_train
+    X_test = X_train
     for k in range(Y_test.shape[0]) :    
-        err = Y_test[k] - best_solution.ANN_model.forward(X_test[k])
+        err = Y_test[k] - Particle.fittest_solution.ANN_model.forward(X_test[k])
         mse += np.abs(err)
     mse = mse  / Y_test.shape[0]
 
-    print("Fitness", best_glob_fitness[-1], "MSE", mse)
+    print("Fitness", 1/best_glob_fitness[-1], "MSE", 1/AssessFitness(Particle.fittest_solution))
+    
+    # !!! ERROR 
 
+
+    """ plt.title("Fitness evolution")
+    plt.plot(best_glob_fitness,'*')
+    plt.show()
+    print(best_solution) """
     # Compare with a forward backward algorithm
 
