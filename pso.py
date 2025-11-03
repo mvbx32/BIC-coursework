@@ -28,6 +28,10 @@ import xlrd
 
 #==             Data        == 
 
+np.random.seed(42)
+random.seed(42)
+
+
 # Source : https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength
 
 #---Inputs
@@ -138,9 +142,9 @@ def PSO(swarmsize,
         for x in P : # [l16]
             vel = x.velocity
             vector = x.vector
-            new_vel = np.zeros_like(x.vector)
+            new_vel = np.zeros_like(x.velocity)
 
-            # == Update of the fittest per catergory (x*,xplus, x!) ====
+            # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
             xstar = x.best_x.vector            #               [l17]
             # definition of the informants
             x.x_informants = Informants(x,P,informants_number) 
@@ -152,9 +156,10 @@ def PSO(swarmsize,
                 c = random.random() * gamma  #               [l22]
                 d = random.random() * delta  #               [l23]
                 new_vel[i] = alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
-
+            x.velocity = new_vel                                                                                            # [l24]
         # == Mutation ==   
         for x in P : #                                      [l25]
+            vector = x.vector
             x.vector = vector + epsilon*x.velocity #      [l26]
            
         #if Particle.best_fitness > criteria : break # [l27]
@@ -171,31 +176,6 @@ def PSO(swarmsize,
     
     return Particle.fittest_solution, BestFitnessList # Vector representation
 
-def ANN2Vector(ANNstructure):
-    pass
-
-def Informants(x,P, informants_number):
-    # x Particle 
-    # P set of Particle
-
-    # 2nd idea suggested in Lecture 7 : random subset of P
-    return random.sample(P, informants_number)
-
-def AssessFitness(x): # funct input
-
-    """  # MSE 
-    y # known
-    mse = 0
-    for k in range() :    
-        err = y - x.ANN_model.forward()
-        mse += np.abs(err)
-
-    mse = mse  / N 
-
-    return mse """
-    
-    return np.inf *-1
-    
 if __name__ == "__main__" : 
 
     # %% Example 1 
@@ -225,7 +205,7 @@ if __name__ == "__main__" :
     
     ANNStructure = [8,5,1]
 
-    swarmsize = 10 # between 10 - 100
+    swarmsize = 1 # between 10 - 100
 
     # Acceleration weights | Clue : sum = 4 
     alpha = 1 
@@ -252,16 +232,17 @@ if __name__ == "__main__" :
         AssessFitness, 
         informants_number, 
         Informants, 
-        max_iteration_number = 10, 
-        verbose = 1)
+        max_iteration_number = 1, 
+        verbose = 1) 
+    
     # How to check the correctness of the algorithm  ??
     # Warning a lot of assumptions : the ANN structure might be inefficient 
 
     
     #== Test == 
     plt.figure()
+     
     mse = 0
-
     Y_test = Y_train
     X_test = X_train
     for k in range(Y_test.shape[0]) :    
@@ -269,7 +250,7 @@ if __name__ == "__main__" :
         mse += np.abs(err)
     mse = mse  / Y_test.shape[0]
 
-    print("Fitness", 1/best_glob_fitness[-1], "MSE", 1/AssessFitness(Particle.fittest_solution))
+    print("mse ",mse,"Gloabal Fitness saved", 1/best_glob_fitness[-1], "MSE", 1/AssessFitness(Particle.fittest_solution), "MSE saved", 1/Particle.best_fitness)
     
     # !!! ERROR 
 

@@ -15,8 +15,8 @@ class Particle():
     # == Common variables == 
 
     ANN_structure = None
-    AssessFitness = callable
-    Informants    = callable
+    AssessFitness = None
+    Informants    = None
     
     # -- X! -- 
     fittest_solution = None # Particle type
@@ -26,11 +26,15 @@ class Particle():
     
         # * Error * 
         assert(Particle.ANN_structure != None) # -- Error Msg : ANN_structure undefined --
-        assert(Particle.AssessFitness != callable) # -- Error Msg : Fitness undefined --
-        assert(Particle.Informants != callable)    # -- Error Msg : Informants selection undefined --
+        assert(Particle.AssessFitness is not None ) # -- Error Msg : Fitness undefined --
+        assert(Particle.Informants is not None)    # -- Error Msg : Informants selection undefined --
 
         # Construction of the vector representation
-    
+
+        # vector = (Layer1 , Layer2 , ... , Layer n)
+        #   where Layeri = Suite of each Neurons Weights = Neuron1Weights,Neuron2Weights, ..., NeuronKWeights 
+        #       where NeuronjWeights = inputs weights, biais = W1,W2,..,Wl, biais
+        
         weight_list = []
 
         for i in range(1,len(Particle.ANN_structure)):
@@ -42,15 +46,19 @@ class Particle():
                 for wi in range(Particle.ANN_structure[i-1]) :
                     # for each weigth to the neuron  
                     weight_list.append(random.random())
+                
+                # bias
+                weight_list.append(random.random())
 
         self._vector = np.array(weight_list).transpose()
         self.velocity = np.zeros_like(self.vector)
 
         # Instantiation of the ANN used to compute the fitness
         self.ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["relu" for loop in range(len(Particle.ANN_structure)-1)])
+        
         self.ANN_model = self.vector2ANN()
     
-        
+        print(self.ANN_model.layer_sizes)
         
         # -- X* --
         self._best_fitness = -1*np.inf # integrate the FItness function to the class sinon, initialisant à np.inf on peut passer à côté de la solution
@@ -62,12 +70,12 @@ class Particle():
         
         # -- X+ -- 
         self.best_informant =  self     # Particle type  
-        if type(Particle.fittest_solution) != np.array  : Particle.fittest_solution = self # Particle type
+        if type(Particle.fittest_solution) != Particle  : Particle.fittest_solution = self # Particle type
 
-        self.fitness = Particle.AssessFitness(self) # initialise the fitness
+        self.assessFitness() # initialise the fitness
 
     def __eq__(self, other): 
-        if not((self.vector - other.vector).all()) :
+        if np.array_equal(self.vector, other.vector):
             return True 
         return False
     
@@ -82,7 +90,6 @@ class Particle():
     
     @vector.setter
     def vector(self,v):
-
         self._vector = v
         # preparation of the ANN model for the fitness calculus
         self.ANN_model = self.vector2ANN()
@@ -97,16 +104,25 @@ class Particle():
         # Weight 2              .           .   ...             .           
         #   ...
         # Weight n_output       .           .                   .
-        ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["relu" for loop in range(len(Particle.ANN_structure)-1)])
+        #ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["relu" for loop in range(len(Particle.ANN_structure)-1)])
         
-        assert(ANN_model.layer_sizes == self.ANN_model.layer_sizes) #  Error : ANN structure had been changed
+        #assert(ANN_model.layer_sizes == self.ANN_model.layer_sizes) #  Error : ANN structure had been changed
         i = 0
-        for k in range(1,len(ANN_model.layers)) :                      # for each layer
-            for l in range(ANN_model.layers[k].n_neuron):                    # for each neuron of the layer
-                for j in range(ANN_model.layers[k].n_input) :               # for each input of the neuron
-                    ANN_model.layers[k].W[j,l]= self.vector[i]
+        # for each layer
+        for k in range(1,len(self.ANN_model.layers)) :                      
+            # for each neuron of the layer
+            for l in range(self.ANN_model.layers[k].n_neuron):    
+
+                # for each input of the neuron               
+                for j in range(self.ANN_model.layers[k].n_input) :               
+                    self.ANN_model.layers[k].W[j,l]= self.vector[i]
                     i+=1
-        return ANN_model
+
+                 # bias
+                self.ANN_model.layers[k].b[l] = self.vector[i]
+                i+=1
+
+        return self.ANN_model
         
     # == Fitness == 
     @property
@@ -134,7 +150,11 @@ class Particle():
                 Particle.fittest_solution = self
 
     def assessFitness(self):
+        print("AssessFitness")
         self.fitness= Particle.AssessFitness(self)
+
+        print(self.fitness)
+
 
     @property
     def informants(self): # To test
@@ -143,7 +163,6 @@ class Particle():
     @informants.setter
     def informants(self,new_informants):  # To test    
         if not self in new_informants :  # Injunction [l18] PSO : x must belong to the informants
-            #/!\ DEBUG IN operator 
             new_informants.append(self)
 
         self._informants  = new_informants
@@ -177,7 +196,7 @@ if __name__ == "__main__":
             mse += np.abs(err)
         mse = mse  / Y_train.shape[0]
 
-        return mse
+        return 1/mse # maximizing the fitness we minimize the error (>0)
        
     Particle.ANN_structure = [8,5,1]
     Particle.AssessFitness = AssessFitness
