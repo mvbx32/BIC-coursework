@@ -1,4 +1,3 @@
-
 import time
 import random 
 import numpy as np
@@ -9,9 +8,8 @@ import tqdm
 import xlrd
 
 # TODO : 
-# ???? !!!!!! LES POIDS DANS LA REPRESENTATION VECTORIELLE ETC...
-
-# Set a linear activation function
+# Issue with how the particle are referenced : pointer issue => use copy ??
+# ISSUE : Fitness != mse when swarmsize > 1 but OK when swarmsize = 1 ; the good solution is well identified 
 # Set a default activation function as linear when instantiating an ANN
 # Looks for biblio ressources to better understand how could be modeled the ANN : linear ? 
 # How to test the PSO ???
@@ -106,10 +104,12 @@ def PSO(swarmsize,
         verbose = 1) : 
     
     BestFitnessList = []
+    BestsolutionList = []
     # == Definition of the particle structure (ANN structure) ==
     Particle.ANN_structure = ANNStructure  # given by an ANN instantiation
     Particle.AssessFitness = AssessFitness
     Particle.Informants = Informants
+    Particle.informants_number = informants_number
 
     # == PSO parameters == 
     swarmsize = swarmsize #           #10 -100                              [l1]
@@ -145,11 +145,11 @@ def PSO(swarmsize,
             new_vel = np.zeros_like(x.velocity)
 
             # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
-            xstar = x.best_x.vector            #               [l17]
+            xstar = x.best_x         #               [l17]
             # definition of the informants
-            x.x_informants = Informants(x,P,informants_number) 
-            xplus = x.best_informant.vector      #               [l18]
-            xmark = Particle.fittest_solution.vector #             [l19]
+            x.x_informants = Informants(x,P) 
+            xplus = x.best_informant   #               [l18]
+            xmark = Particle.fittest_solution #             [l19]
 
             for i in range(x.vector.shape[0]) : #           [l20] p.vector[i] = 1 works ? z
                 b = random.random() * beta   #               [l21]
@@ -161,6 +161,7 @@ def PSO(swarmsize,
         for x in P : #                                      [l25]
             vector = x.vector
             x.vector = vector + epsilon*x.velocity #      [l26]
+        Best = Particle.fittest_solution
            
         #if Particle.best_fitness > criteria : break # [l27]
 
@@ -172,25 +173,34 @@ def PSO(swarmsize,
             logexport()
             break """
         
-        BestFitnessList.append(Particle.best_fitness)
-    
-    return Particle.fittest_solution, BestFitnessList # Vector representation
+        BestFitnessList.append(1/Particle.best_fitness)
+        
+    return Particle.fittest_solution, BestFitnessList, BestsolutionList # Vector representation
 
 if __name__ == "__main__" : 
 
     # %% Example 1 
 
-    def Informants(x,P, informants_number):
+    def Informants(x,P):
         # x Particle 
         # P set of Particle
         # 2nd idea suggested in Lecture 7 : random subset of P
-        return random.sample(P, informants_number)
+        R = random.sample(P, Particle.informants_number)
+
+        new_informants = [p.vector.copy() for p in R]
+        fitnesses =[p.fitness for p in R]
+
+        return new_informants, fitnesses
     
-    def AssessFitness(x):
+    def AssessFitness(ANN_model):
+
+        if type(ANN_model) == Particle : 
+            ANN_model = ANN_model.ANN_model
+
         # arbitrary choice !!
         mse = 0
         for k in range(Y_train.shape[0]) :    
-            err = Y_train[k] - x.ANN_model.forward(X_train[k])
+            err = Y_train[k] - ANN_model.forward(X_train[k])
             mse += np.abs(err)
         mse = mse  / Y_train.shape[0]
    
@@ -205,7 +215,7 @@ if __name__ == "__main__" :
     
     ANNStructure = [8,5,1]
 
-    swarmsize = 1 # between 10 - 100
+    swarmsize = 3 # between 10 - 100
 
     # Acceleration weights | Clue : sum = 4 
     alpha = 1 
@@ -215,14 +225,14 @@ if __name__ == "__main__" :
 
     # Jump size/ learning rate  | Clue : ? 
     epsi  = 0.3  # https://doi.org/10.1155/2020/8875922 0.3
-    informants_number = 1 #arbitrary ; ? 
+    informants_number = 0 #arbitrary ; ? 
     
-    max_iteration_number = 1200 # research paper  # https://doi.org/10.1155/2020/8875922
+    max_iteration_number = 20 # research paper  # https://doi.org/10.1155/2020/8875922
  
     
     #== PSO == 
 
-    best_solution, best_glob_fitness = PSO(swarmsize, 
+    best_solution, best_glob_fitness,  BestsolutionList = PSO(swarmsize, 
         alpha, 
         beta, 
         gamma,
@@ -232,7 +242,7 @@ if __name__ == "__main__" :
         AssessFitness, 
         informants_number, 
         Informants, 
-        max_iteration_number = 1, 
+        max_iteration_number = max_iteration_number, 
         verbose = 1) 
     
     # How to check the correctness of the algorithm  ??
@@ -241,17 +251,24 @@ if __name__ == "__main__" :
     
     #== Test == 
     plt.figure()
-     
+
+    ann_model = Particle.vector2ANN(Particle.fittest_solution   ) 
     mse = 0
     Y_test = Y_train
     X_test = X_train
     for k in range(Y_test.shape[0]) :    
-        err = Y_test[k] - Particle.fittest_solution.ANN_model.forward(X_test[k])
+        err = Y_test[k] - ann_model.forward(X_test[k])
         mse += np.abs(err)
     mse = mse  / Y_test.shape[0]
-
-    print("mse ",mse,"Gloabal Fitness saved", 1/best_glob_fitness[-1], "MSE", 1/AssessFitness(Particle.fittest_solution), "MSE saved", 1/Particle.best_fitness)
     
+
+
+    #print( Particle.fittest_solution)
+    
+    print("mse ",mse,"Global Fitness saved", best_glob_fitness[-1], "MSE", 1/AssessFitness(ann_model), "MSE saved", 1/Particle.best_fitness)
+    # BestFinestList NOK
+    #print(best_glob_fitness)
+    #print( BestsolutionList)
     # !!! ERROR 
 
 

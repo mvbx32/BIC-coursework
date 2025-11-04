@@ -17,16 +17,17 @@ class Layer:
 
         # Weight representation in self.W :
         #
-        #                   Neuron1   Neuron2  ...        Neuron n_input
+        # n_input \ n_output  Neuron1   Neuron2  ...        Neuron n_input
         # Weight 1              .          .                    .
         # Weight 2              .           .   ...             .           
         #   ...
         # Weight n_output       .           .                   .
 
+        # n_input : number of input for each neuron ; 
+        # n_output : number of neurons
         self.n_input = n_input
         self.n_neuron = n_output
-        self.W = np.random.randn(n_input, n_output) # n_input : number of input for each neuron ; 
-                                                    # n_output : number of neurons
+        self.W = np.random.randn(n_input, n_output) 
         self.b = np.random.randn(n_output)
         self.activation = getattr(Activation, activation)
 
@@ -34,15 +35,23 @@ class Layer:
 
         assert(self.W.shape == value.W.shape) # error : unmatched dimensions
 
-        if not((self.W - value.W).all()) and not((self.b - value.b).all()) :
+        if ((self.W == value.W).all()) and ((self.b == value.b).all()) :
             # if equal the resulting vector is null
             return True 
+        
         return False
-            
+    
+    def copy(self):
+        # == AI == 
+        #Prompt : given the clas Layer implements a copy method
+        clone = Layer(self.n_input, self.n_neuron, self.activation)
+        clone.W = np.copy(self.W)
+        clone.b = np.copy(self.b)
+        return clone
 
 class ANN:
     @property
-    def layer_size(self): #??? #get_attr
+    def layer_size(self): 
         """
         Returns the list of sizes of each layer (input, hidden layers..., output).
         Infers sizes from weights if the original attribute was not stored.
@@ -66,6 +75,8 @@ class ANN:
             "the total of activation functions must be equal to the number of hidden layers + output layer"
 
         self.layer_sizes = layer_sizes
+        self.activations = activations
+
         # Create successive layers
         self.layers = [
             Layer(layer_sizes[i], layer_sizes[i+1], activations[i])
@@ -75,13 +86,21 @@ class ANN:
     def __eq__(self, ANN2):
         
         for i in range(len(self.layers)) : 
-
             if not(self.layers[i] == ANN2.layers[i]) : 
                 return False
         return True
     
     def forward(self, x):
+
         for layer in self.layers:
+            #           Neuron1     ...        NeuronN
+            #                                            Weight1
+            # 
+            #                                                                 @   ( x1 x2 ... xK) + (b1 b2 ... bB)
+            #                                                ...
+
+            #                                           WeightW
+
             x = np.dot(x, layer.W) + layer.b
             x = layer.activation(x)
         return x
@@ -114,7 +133,7 @@ if __name__ == "__main__":
               activations=["relu", "tanh"])
 
     # Random input data (e.g., 3 samples, 8 features)
-    X = np.random.rand(3, 8)
+    X = np.random.rand(3, 8) #??
 
     # Forward propagation
     Y_pred = ann.forward(X)
