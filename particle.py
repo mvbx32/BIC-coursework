@@ -16,6 +16,7 @@ class Particle :
 
     # ==   ANN     == 
     ANN_structure = None
+    ANN_activation = None 
 
     #np.array types
     AssessFitness = None
@@ -29,6 +30,28 @@ class Particle :
     fittest_solution = None 
     best_fitness = -1*np.inf   
     bestANN = None  
+
+
+    def reset():
+        # WARNING : reset the Particle class between two consecutives PSO executions
+
+        # ==   ANN     == 
+        Particle.ANN_structure = None
+        Particle.ANN_activation = None 
+
+        #np.array types
+        Particle.AssessFitness = None
+        # callable
+        Particle.Informants        = None
+        Particle.informants_number = None
+        Particle.particleNumber = 0
+
+        # -- X! -- 
+        # np.array type
+        Particle.fittest_solution = None 
+        Particle.best_fitness = -1*np.inf   
+        Particle.bestANN = None  
+
     
     def __init__(self):  
     
@@ -43,7 +66,7 @@ class Particle :
         self.id = Particle.particleNumber
 
         # init a random vector from a Random ANN
-        a = ANN(layer_sizes=Particle.ANN_structure, activations=["linear" for loop in range(len(Particle.ANN_structure)-1)])
+        a = ANN(layer_sizes=Particle.ANN_structure, activations= [Particle.ANN_activation]*(len(Particle.ANN_structure)-1) )
         self._vector = a.get_params().copy()
         # Init of the class variables
         self.__fitness = np.inf *-1
@@ -51,14 +74,13 @@ class Particle :
         self.velocity = np.zeros_like(self.vector)
 
         # Instantiation of the ANN to compute the fitness
-        self.ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["linear" for loop in range(len(Particle.ANN_structure)-1)])
+        self.ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=  [Particle.ANN_activation]*(len(Particle.ANN_structure)-1) )
         self.ANN_model.set_params(self.vector)
         
         # -- X* --
         self._best_fitness = -1*np.inf
         self.best_x =  self             # Particle type
 
-        # ??? Previous
         # -- X+ -- 
 
         self.best_informant =  self.vector   # Particle type  
@@ -175,14 +197,16 @@ class Particle :
 
 if __name__ == "__main__":
     
-    from data import X_train, Y_train, X_test, Y_test
+    from data import Data
     from tools import * 
 
     Informants = randomParticleSet
     AssessFitness = inv_ANN_MSE
        
     Particle.ANN_structure = [8,5,1]
+    Particle.ANN_activation = 'linear'
     Particle.AssessFitness = AssessFitness
     Particle.Informants = Informants
+    Particle.informants_number = 0
     Particle()
 

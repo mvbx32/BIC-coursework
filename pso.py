@@ -8,8 +8,7 @@ import tqdm
 import xlrd
 
 # TODO : 
-# Issue with how the particle are referenced : pointer issue => use copy ??
-# ISSUE : Fitness != mse when swarmsize > 1 but OK when swarmsize = 1 ; the good solution is well identified 
+
 # Set a default activation function as linear when instantiating an ANN
 # Looks for biblio ressources to better understand how could be modeled the ANN : linear ? 
 # How to test the PSO ???
@@ -21,7 +20,7 @@ import xlrd
 # -     Setup logs + Saving of intermediar / final models 
 # ==           PSO          == 
 
-np.random.seed(42)
+
 
 def PSO(swarmsize, 
         alpha, 
@@ -29,18 +28,18 @@ def PSO(swarmsize,
         gamma,
         delta,
         epsi, 
-        ANNStructure, 
+        ANNStructure,
+        ANN_activation, 
         AssessFitness, 
         informants_number, 
         Informants, 
         max_iteration_number = 2000, 
         verbose = 1) : 
     
-    ParticleBirthDate = {}
-    BestFitnessList = []
-    BestsolutionList = []
+    
     # == Definition of the particle structure (ANN structure) ==
     Particle.ANN_structure = ANNStructure  # given by an ANN instantiation
+    Particle.ANN_activation = ANN_activation
     Particle.AssessFitness = AssessFitness
     Particle.Informants = Informants
     Particle.informants_number = informants_number
@@ -59,7 +58,7 @@ def PSO(swarmsize,
     for loop in range(swarmsize):  #                                    [l8]
         p = Particle()
         P.append(p) #                                                   [l9] # new random particle  
-        ParticleBirthDate[str(list(p.vector))] = "init"
+       
     Best = None #                                                       [l10]
 
     t0 = time.time()
@@ -87,7 +86,7 @@ def PSO(swarmsize,
             xplus = x.best_informant   #               [l18]
             xmark = Particle.fittest_solution #             [l19]
 
-            for i in range(x.vector.shape[0]) : #           [l20] p.vector[i] = 1 works ? z
+            for i in range(x.vector.shape[0]) : #           [l20] 
                 b = random.random() * beta   #               [l21]
                 c = random.random() * gamma  #               [l22]
                 d = random.random() * delta  #               [l23]
@@ -99,20 +98,18 @@ def PSO(swarmsize,
             
             x.vector +=  (epsilon*x.velocity) #      [l26]
 
-            ParticleBirthDate[str(list(x.vector))] = it
         Best = Particle.fittest_solution
            
         #if Particle.best_fitness > criteria : break # [l27]
-        BestsolutionList.append(Particle)
-        BestFitnessList.append(Particle.best_fitness)
+        
         
         it +=1
     
-    return Particle.fittest_solution, BestFitnessList, BestsolutionList, ParticleBirthDate # Vector representation
+    return Particle.fittest_solution, # Vector representation
 
 if __name__ == "__main__" : 
 
-    from data import X_train, Y_train, X_test, Y_test
+    from data import Data 
     from tools import * 
     # %% Example 1 
 
@@ -120,6 +117,7 @@ if __name__ == "__main__" :
     AssessFitness = inv_ANN_MSE
  
     ANNStructure = [8,5,1]
+    ANN_activation = "relu"
     swarmsize = 1 # between 10 - 100
     # Acceleration weights | Clue : sum = 4 
     alpha = 1 
@@ -138,20 +136,22 @@ if __name__ == "__main__" :
     print(Particle.fittest_solution)
 
     #== PSO == 
-    best_solution, best_glob_fitness,  BestsolutionList,  ParticleBirthDate = PSO(swarmsize, 
+    best_solution = PSO(swarmsize, 
         alpha, 
         beta, 
         gamma,
         delta,
         epsi, 
         ANNStructure, 
+        ANN_activation,
         AssessFitness, 
         informants_number, 
         Informants, 
         max_iteration_number = max_iteration_number, 
         verbose = -1) 
     
-    # How to check the correctness of the algorithm  ??
+    
+
     # Warning a lot of assumptions : the ANN structure might be inefficient 
 
     #print("BEST SOlution at the end",  Particle.fittest_solution  )
@@ -162,19 +162,8 @@ if __name__ == "__main__" :
     ann_model = p.ANN_model
     ann_model.set_params( Particle.fittest_solution  )
 
-    vect = np.array( [0.6394268,  0.02501076, 0.27502932, 0.22321074, 0.73647121, 0.67669949,
-    0.89217957, 0.08693883 ,0.42192182, 0.02979722 ,0.21863797 ,0.50535529
-    ,0.02653597 ,0.19883765 ,0.64988444 ,0.54494148 ,0.22044062 ,0.58926568
-    ,0.80943046 ,0.00649876 ,0.80581925 ,0.69813939 ,0.34025052 ,0.1554795
-    ,0.95721307 ,0.33659455 ,0.09274584 ,0.09671638 ,0.84749437 ,0.60372603
-    ,0.80712827 ,0.72973179 ,0.53622809 ,0.97311576 ,0.37853438 ,0.55204063
-    ,0.82940466 ,0.61851975 ,0.8617069  ,0.57735215 ,0.70457184 ,0.04582438
-    ,0.22789828 ,0.28938796 ,0.07979198 ,0.23279089 ,0.10100143 ,0.2779736
-    ,0.63568444 ,0.36483218 ,0.37018097])
-
     #ann_model.set_params( vect  )
 
-    print(Particle.fittest_solution, vect)
     #ann_model = Particle.vector2ANN(Particle.fittest_solution   ) 
     #BestsolutionList.index(Particle.fittest_solution)
     #print("birth of the last best_sole" , ParticleBirthDate[str(list(best_solution)) ])
@@ -182,42 +171,17 @@ if __name__ == "__main__" :
     #print("birth of the last REAL best_sole" , ParticleBirthDate[str(list(Particle.fittest_solution)) ])
  
     mse = 0
-    for k in range(Y_train.shape[0]) :    
-        err = Y_train[k] - ann_model.forward(X_train[k])#Particle.bestANN.forward(X_train[k])
+    for k in range(Data.Y_train.shape[0]) :    
+        err = Data.Y_train[k] - ann_model.forward(Data.X_train[k])#Particle.bestANN.forward(X_train[k])
         mse += np.abs(err)
-    mse = mse  / Y_train.shape[0]
+    mse = mse  / Data.Y_train.shape[0]
     fit = 1/mse
     
-    print("1/mse ",fit,"Global Fitness saved", best_glob_fitness[-1], "1/MSE", AssessFitness(ann_model), "1/MSE saved", Particle.best_fitness)
+    print("1/mse ",fit,"Global Fitness saved", "1/MSE", AssessFitness(ann_model), "1/MSE saved", Particle.best_fitness)
     
-
-    X_train, Y_train  = X_test, Y_test 
+    X_train, Y_train  = Data.X_test, Data.Y_test  # to modify
     print(1/AssessFitness(Particle.bestANN))
 
 
-    
-    # BestFinestList NOK
-    #print(best_glob_fitness)
-    #print( BestsolutionList)
-    # !!! ERROR 
 
-   
 
-   
-    # Compare with a forward backward algorithm
-    
-    """ plt.title("Fitness evolution")
-    plt.plot(best_glob_fitness,'*')
-    plt.show()
-    print(best_solution) """
-    
-print("\n=== Diagnostic ===")
-print("Best fitness enregistré :", Particle.best_fitness)
-
-# Recalcule le fitness depuis la même solution sauvegardée :
-p_test = Particle()
-p_test.ANN_model.set_params(Particle.fittest_solution)
-f_test = AssessFitness(p_test)
-
-print("Fitness recalculé sur la même solution :", f_test)
-print("Différence :", Particle.best_fitness - f_test)
