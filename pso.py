@@ -48,23 +48,23 @@ def PSO(swarmsize,
     # == PSO parameters == 
     swarmsize = swarmsize #           #10 -100                              [l1]
     
-    alpha = alpha #         /!\ rule of thumb (Somme might be 4 )    [l2]
-    beta = beta   #                                            [l3]
-    gamma = gamma  #                                            [l4]
-    delta = delta    #                                          [l5]
-    epsilon = epsi   #                                          [l6]
+    alpha = alpha #         /!\ rule of thumb (Somme might be 4 )       [l2]
+    beta = beta   #                                                     [l3]
+    gamma = gamma  #                                                    [l4]
+    delta = delta    #                                                  [l5]
+    epsilon = epsi   #                                                  [l6]
     criteria = 1
 
-    P = []      #                                           [l7]
-    for loop in range(swarmsize):  #                        [l8]
+    P = []      #                                                       [l7]
+    for loop in range(swarmsize):  #                                    [l8]
         p = Particle()
-        P.append(p) #                              [l9] # new random particle  
+        P.append(p) #                                                   [l9] # new random particle  
         ParticleBirthDate[str(list(p.vector))] = "init"
-    Best = None #                                           [l10]
+    Best = None #                                                       [l10]
 
     t0 = time.time()
     it = 0 
-    for loop in tqdm.tqdm(range(max_iteration_number), disable=not verbose): #      [l11]
+    for loop in range(max_iteration_number): #                          [l11]
         print("Loop n°",loop)
     
         # == Determination of the Best == 
@@ -91,7 +91,6 @@ def PSO(swarmsize,
                 b = random.random() * beta   #               [l21]
                 c = random.random() * gamma  #               [l22]
                 d = random.random() * delta  #               [l23]
-                asma = alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) 
                 new_vel[i] = alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
             x.velocity = new_vel                                                                                          # [l24]
         # == Mutation ==   
@@ -121,7 +120,7 @@ if __name__ == "__main__" :
     AssessFitness = inv_ANN_MSE
  
     ANNStructure = [8,5,1]
-    swarmsize = 3 # between 10 - 100
+    swarmsize = 1 # between 10 - 100
     # Acceleration weights | Clue : sum = 4 
     alpha = 1 
     beta  = 1 # cognitive influence ; c1 = 1.49445  https://doi.org/10.1155/2020/8875922
@@ -130,7 +129,7 @@ if __name__ == "__main__" :
     # Jump size/ learning rate  | Clue : ? 
     epsi  = 0.3  # https://doi.org/10.1155/2020/8875922 0.3
     informants_number = 0 #arbitrary ; ? 
-    max_iteration_number = 20 # research paper  # https://doi.org/10.1155/2020/8875922
+    max_iteration_number = 10 # research paper  # https://doi.org/10.1155/2020/8875922
     
     """
     X_train = np.linspace(0,100,10)
@@ -181,18 +180,22 @@ if __name__ == "__main__" :
     #print("birth of the last best_sole" , ParticleBirthDate[str(list(best_solution)) ])
     #print(ParticleBirthDate)
     #print("birth of the last REAL best_sole" , ParticleBirthDate[str(list(Particle.fittest_solution)) ])
-   
-    mse = 0
  
     mse = 0
     for k in range(Y_train.shape[0]) :    
-        err = Y_train[k] - Particle.bestANN.forward(X_train[k])
+        err = Y_train[k] - ann_model.forward(X_train[k])#Particle.bestANN.forward(X_train[k])
         mse += np.abs(err)
     mse = mse  / Y_train.shape[0]
     fit = 1/mse
     
-    print("mse ",fit,"Global Fitness saved", best_glob_fitness[-1], "MSE", AssessFitness(ann_model), "MSE saved", Particle.best_fitness)
-   
+    print("1/mse ",fit,"Global Fitness saved", best_glob_fitness[-1], "1/MSE", AssessFitness(ann_model), "1/MSE saved", Particle.best_fitness)
+    
+
+    X_train, Y_train  = X_test, Y_test 
+    print(1/AssessFitness(Particle.bestANN))
+
+
+    
     # BestFinestList NOK
     #print(best_glob_fitness)
     #print( BestsolutionList)

@@ -29,6 +29,7 @@ class Layer:
         self.n_neuron = n_output
         self.W = np.random.randn(n_input, n_output) 
         self.b = np.random.randn(n_output)
+        self.activationId= activation
         self.activation = getattr(Activation, activation)
 
     def __eq__(self, value): 
@@ -44,10 +45,17 @@ class Layer:
     def copy(self):
         # == AI == 
         #Prompt : given the clas Layer implements a copy method
-        clone = Layer(self.n_input, self.n_neuron, self.activation)
+        clone = Layer(self.n_input, self.n_neuron, self.activationId)
         clone.W = np.copy(self.W)
         clone.b = np.copy(self.b)
         return clone
+    
+# ==        ANN         ==
+# Hyperparameters
+# number of hidden layer : depends on the problem complexity
+# number of neurons per hidden layer : affects the generalisation (undefitting VS overfitting)
+# activation functions : since we have a regression problem, 
+# it is convenient to have a linear activation function in the output and others function in the hidden layer (lecture 2)
 
 class ANN:
     @property
@@ -85,10 +93,33 @@ class ANN:
 
     def __eq__(self, ANN2):
         
-        for i in range(len(self.layers)) : 
-            if not(self.layers[i] == ANN2.layers[i]) : 
-                return False
-        return True
+        if (self.get_params() == ANN2.get_params()).all():
+            return True 
+        return False
+    
+        """
+        Equivalently : 
+
+        m = True
+        i = 0
+        for layer in self.layers :
+            if layer != ANN2.layers[i]:
+            
+                m = False
+            i+=1
+        return m
+        """
+    def copy(self):
+        clone = ANN(layer_sizes=self.layer_sizes, activations= self.activations)
+        l = 0
+        for layer in self.layers : 
+            clone.layers[l] = layer.copy()
+            l+=1
+        """
+        try with set params
+        """
+        return clone
+
     
     def forward(self, x):
 
@@ -111,7 +142,7 @@ class ANN:
         for layer in self.layers:
             params.extend(layer.W.flatten())
             params.extend(layer.b.flatten())
-        return np.array(params)
+        return np.array(params).astype('float')
 
     # Sets weights and biases from a 1D numpy array
     def set_params(self, params):
