@@ -2,7 +2,7 @@ import numpy as np
 import random 
 from ANN_alone import ANN
 # Clean the code recursively
-
+from  data import *
 class Particle :
 
     """
@@ -29,7 +29,8 @@ class Particle :
     # -- X! -- 
     # np.array type
     fittest_solution = None 
-    best_fitness = -1*np.inf     
+    best_fitness = -1*np.inf   
+    bestANN = None  
     
     def __init__(self):  # To test # To do : give a default random params value
     
@@ -52,7 +53,7 @@ class Particle :
         weight_list = []
 
         # TODO : replace that by the conversion of a random ANN
-        
+        '''
         for i in range(1,len(Particle.ANN_structure)):
             # for each hidden layer + output
 
@@ -65,7 +66,9 @@ class Particle :
                 
                 # bias
                 weight_list.append(random.random())
-        self._vector = np.array(weight_list).transpose()
+        '''
+        a = ANN(layer_sizes=Particle.ANN_structure, activations=["linear" for loop in range(len(Particle.ANN_structure)-1)])
+        self._vector = a.get_params().copy()
         # Init of the class variables
         self.__fitness = np.inf *-1
       
@@ -73,7 +76,7 @@ class Particle :
 
         # Instantiation of the ANN to compute the fitness
         self.ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=["linear" for loop in range(len(Particle.ANN_structure)-1)])
-        self.ANN_model = Particle.vector2ANN(self.vector)
+        self.ANN_model.set_params(self.vector)
         
       
         
@@ -90,8 +93,9 @@ class Particle :
         self._informants = [self.vector] # list of Particle Type 
         self.informants_fitness = [self.fitness]
        
-        if type(Particle.fittest_solution) != Particle  : Particle.fittest_solution = self.vector.copy() # Particle type
-        self.assessFitness() # initialise the fitness
+        if Particle.particleNumber == 0  : 
+            Particle.fittest_solution = self.vector.copy() # Particle type
+        #self.assessFitness() # initialise the fitness # DANGEROUS
         
 
     def __eq__(self, other): 
@@ -141,7 +145,7 @@ class Particle :
     def vector(self,v):
         self._vector = v
         # preparation of the ANN model for the fitness calculus
-        self.ANN_model = Particle.vector2ANN(self.vector)
+        self.ANN_model.set_params(v) #Particle.vector2ANN(self.vector)
     
  
 
@@ -167,17 +171,23 @@ class Particle :
             self.best_informant_fitness = new_fitness
         # x!
         if new_fitness > Particle.best_fitness : 
+
             Particle.best_fitness = new_fitness
-            Particle.fittest_solution = self.vector.copy()
+            Particle.bestANN  = self.ANN_model.copy()
+            Particle.fittest_solution = self.ANN_model.get_params().copy()
+            print(new_fitness)
+            
+        
+            if new_fitness == np.array([0.00169545]) : 
+                print(Particle.fittest_solution, mse)
+                print()
+                
+            #print("BEST", Particle.fittest_solution, Particle.best_fitness)
             #print(Particle.fittest_solution)
 
     def assessFitness(self):
         #print("AssessFitness" + str(self.id))
         self.fitness= Particle.AssessFitness(self)
-
-       
-
-
 
     @property
     def informants(self): # To test
@@ -204,8 +214,8 @@ class Particle :
 
         self._informants  = new_informants # ??? Might cause issues with de copy
         self.informants_fitness = new_informants_fitness
-
-     @staticmethod
+    '''
+    @staticmethod
     def vector2ANN(vector):
             # Weight representation in the Layer class : for a given kth layer
         #
@@ -252,7 +262,7 @@ class Particle :
                 i+=1
                 
         return np.array(vector)
-    
+    '''
     def export(self): #TODO : complete
         """
         Export the vector as a .txt file. 
@@ -263,26 +273,11 @@ class Particle :
 
 if __name__ == "__main__":
     
-    def Informants(x,P):
-        # x Particle 
-        # P set of Particle
-        # 2nd idea suggested in Lecture 7 : random subset of P
-        R = random.sample(P, Particle.informants_number)
+    from data import X_train, Y_train, X_test, Y_test
+    from tools import * 
 
-        new_informants = [p.vector.copy() for p in R]
-        fitnesses =[p.fitness for p in R]
-
-        return new_informants, fitnesses
-
-    def AssessFitness(x):
-        # arbitrary choice !!
-        mse = 0
-        for k in range(Y_train.shape[0]) :    
-            err = Y_train[k] - x.ANN_model.forward(X_train[k])
-            mse += np.abs(err)
-        mse = mse  / Y_train.shape[0]
-
-        return 1/mse # maximizing the fitness we minimize the error (>0)
+    Informants = randomParticleSet
+    AssessFitness = inv_ANN_MSE
        
     Particle.ANN_structure = [8,5,1]
     Particle.AssessFitness = AssessFitness
