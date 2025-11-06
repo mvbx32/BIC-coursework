@@ -1,7 +1,14 @@
+#==================== particule.py   ==============#
 import numpy as np
 import random 
 from ANN_alone import ANN
-# Clean the code recursively
+
+
+# WARNING and sources of mistakes / bugs
+# The best solution are stored as class Particle 
+# -> a multi task training (several experiments importing Particle at the same time) will fail
+# -> Particle class must be reset 
+
 from  data import *
 class Particle :
 
@@ -210,3 +217,4 @@ if __name__ == "__main__":
     Particle.informants_number = 0
     Particle()
 
+#==================== particule.py  | END ==============#
