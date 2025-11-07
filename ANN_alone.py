@@ -9,8 +9,8 @@ class Activation:
     def tanh(x): return np.tanh(x)
     @staticmethod
     def linear(x): return x
-
-
+    @staticmethod
+    def input(x):return x
 class Layer:
     # Initialize random weights and bias
     def __init__(self, n_input, n_output, activation):
@@ -87,9 +87,10 @@ class ANN:
         self.activations = activations
 
         # Create successive layers
+        # [hidden layer 1, hidden layer 2 , ..., output]
         self.layers = [
             #     n_input           n_output          activation function
-            Layer(layer_sizes[i], layer_sizes[i+1], activations[i])
+            Layer(layer_sizes[i-1], layer_sizes[i], activations[i-1])
             for i in range(1,len(layer_sizes))
         ]
 
