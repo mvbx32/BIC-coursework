@@ -79,18 +79,18 @@ class ANN:
         return []
     
     def __init__(self, layer_sizes, activations):
-        assert len(layer_sizes) - 1 == len(activations), \
+        assert len(layer_sizes) == len(activations), \
             "the total of activation functions must be equal to the number of hidden layers + output layer"
 
 
         self.layer_sizes = layer_sizes # [dimension of the input, size of hidden layer 1, ..., size of hidden layer n, size of output layer]
-        self.activations = activations
+        self.activations = activations # e.g ['input',..., 'relu']
 
         # Create successive layers
         # [hidden layer 1, hidden layer 2 , ..., output]
         self.layers = [
             #     n_input           n_output          activation function
-            Layer(layer_sizes[i-1], layer_sizes[i], activations[i-1])
+            Layer(layer_sizes[i-1], layer_sizes[i], activations[i])
             for i in range(1,len(layer_sizes))
         ]
 
@@ -164,7 +164,7 @@ class ANN:
 if __name__ == "__main__":
     # Network: 8 inputs → 5 hidden neurons → 1 output
     ann = ANN(layer_sizes=[8, 5, 1],
-              activations=["relu", "tanh"])
+              activations=['input',"relu", "tanh"])
 
     # Random input data (e.g., 3 samples, 8 features)
     X = np.random.rand(3, 8) #??

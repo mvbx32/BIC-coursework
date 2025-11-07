@@ -22,8 +22,6 @@ class Particle :
     # == Common variables == 
 
     # ==   ANN     == 
-    ANN_structure = None
-    ANN_activation = None 
 
     particleNumber = 0
 
@@ -42,39 +40,41 @@ class Particle :
     
     def __init__(self, ANN_structure):  
     
-        # * Error * #
-        # *-------* #
         Particle.particleNumber += 1 
         self.id = Particle.particleNumber
 
         # init a random vector from a Random ANN
-        a = ANN(layer_sizes=ANN_structure, activations= [Particle.ANN_activation]*(len(ANN_structure)-1) )
-        self._vector = a.get_params().copy() # ??
-        
-        # Init of the class variables
-        self.__fitness = np.inf *-1
-      
-        self.velocity = np.zeros_like(self.vector)
 
+        
+        layer_sizes = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 0 ]
+        activations = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 1 ]
+
+        a = ANN(layer_sizes=layer_sizes, activations=activations)
+        self._vector = a.get_params().copy() #
+        self._fitness = np.inf *-1
         # Instantiation of the ANN to compute the fitness
-        self.ANN_model = ANN(layer_sizes = ANN_structure, activations=  [Particle.ANN_activation]*(len(ANN_structure)-1) )
+        self.ANN_model = ANN(layer_sizes=layer_sizes, activations=activations)
         self.ANN_model.set_params(self.vector)
         
+        # Init of the class variables
+        
+        self.velocity = np.zeros_like(self.vector)
+
         # -- X* --
-        self._best_fitness = -1*np.inf
-        self.best_x =  self             # Particle type
+        self.best_x =  self             
+        self._best_fitness = -1*np.inf # Fitness of the best version of self
 
         # -- X+ -- 
-
-        self.best_informant =  self.vector   # Particle type  
-        self.best_informant_fitness = self.fitness
-        self._informants = [self.vector] # list of Particle Type 
-        self.informants_fitness = [self.fitness]
+        self.best_informant =  self.vector  
+        self._informants = [self.vector] 
+        self.informants_fitness = [self.fitness] # -1*np.inf
+        self.best_informant_fitness = self.fitness # -1*np.inf
+        # Remark : the fitnesses will be updated during the first Fitness Assessment (at the beginning of the PSO)
        
-        if Particle.particleNumber == 0  : 
-            Particle.fittest_solution = self.vector.copy() # Particle type
         
-
+        
+   
+    
     def __eq__(self, other): 
         if np.array_equal(self.vector, other.vector):
             return True 
@@ -84,16 +84,12 @@ class Particle :
         return str(self.vector)
 
     def copy(self):
-        '''
-        clone = Particle()
 
+        clone = Particle(self.ANN_model.layer_sizes, self.ANN_model.activations[0])
         clone.vector = self.vector.copy()
         clone.ANN_model = self.ANN_model.copy()
 
-        clone.fittest_solution = self.fittest_solution()
-        pass
-        '''
-        return
+        return clone
      
     # == Vector == 
     @property
@@ -110,18 +106,20 @@ class Particle :
     # == Fitness == 
     @property
     def fitness(self): 
-        return self.__fitness
+        return self._fitness
     
     @fitness.setter
     def fitness(self, new_fitness):  
         
-        self.__fitness = new_fitness
+        self._fitness = new_fitness
 
         # x*
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
             self.best_x = self.vector.copy()
         # x+
+        # Remark : Since x belongs to the informants, 
+        # so x is better than the best informants implies x is the best informants
         if new_fitness > self.best_informant_fitness : 
             self.best_informant = self.vector.copy()
             self.best_informant_fitness = new_fitness
@@ -137,23 +135,29 @@ class Particle :
     def informants(self,informants_data):      
 
         new_informants, new_informants_fitness = informants_data
-        self_is_in_informant = False
+        informant_number = len(new_informants)
 
-        
-        for i in range(len(new_informants)) : 
-            infor = new_informants[i]
-            infor_fit = new_informants_fitness[i]
-            if infor_fit> self.best_informant_fitness : 
-                self.best_informant = infor.copy()
-                self.best_informant_fitness = infor_fit
-            if (infor == self.vector).all()  : self_is_in_informant = True
-
-        if not self_is_in_informant : #  Injunction [l18] PSO : x must belong to the informants
-            new_informants.append(self.vector.copy()) 
-            new_informants_fitness.append(self.fitness)
-
+        if informant_number != 0 : 
+            for i in range(len(new_informants)) : 
+                infor = new_informants[i]
+                infor_fit = new_informants_fitness[i]
+                if infor_fit> self.best_informant_fitness : 
+                    self.best_informant = infor.copy()
+                    self.best_informant_fitness = infor_fit
+                if (infor == self.vector).all()  : self_is_in_informant = True
+            
+            self_is_in_informant = False
+            if not self_is_in_informant : #  Injunction [l18] PSO : x must belong to the informants
+                
+                # replace the last informants generated by self so we still have the right number of informants
+                new_informants[-1] = self.vector.copy()
+                new_informants_fitness.append(self.fitness)
+        # else (no informants) we keep self as the default best informant 
         self._informants  = new_informants 
         self.informants_fitness = new_informants_fitness
+
+  
+
   
     def export(self): #TODO : complete
         """
@@ -171,11 +175,8 @@ if __name__ == "__main__":
     Informants = randomParticleSet
     AssessFitness = inv_ANN_MSE
        
-    Particle.ANN_structure = [8,5,1]
-    Particle.ANN_activation = 'linear'
-    Particle.AssessFitness = AssessFitness
-    Particle.Informants = Informants
-    Particle.informants_number = 0
-    Particle([8,5,1])
+    ANN_structure = [8,'input',5,'linear',1,'sigmoid']
+    ANN_activation = 'linear'
+    Particle(ANN_structure=ANN_structure)
 
 #==================== particule.py  | END ==============#

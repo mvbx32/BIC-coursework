@@ -82,7 +82,7 @@ class TestANN(unittest.TestCase):
 
     def setUp(self):
         np.random.seed(42)  # Pour rendre les tests reproductibles
-        self.ann = ANN(layer_sizes=[3, 5, 2], activations=["relu", "tanh"])
+        self.ann = ANN(layer_sizes=[3, 5, 2], activations=["input","relu", "tanh"])
 
     def test_layer_sizes_property(self):
         expected_sizes = [3, 5, 2]
@@ -96,7 +96,7 @@ class TestANN(unittest.TestCase):
     def test_get_params_length(self):
         #TODO perfectible
 
-        ann2 = ANN([2,2,1],['relu','linear'])
+        ann2 = ANN([2,2,1],["input", 'relu','linear'])
         ann2.layers[0].W = np.array([[1,2],
                                      [3,4]])
         ann2.layers[1].W = np.array([[1,2]])
@@ -127,7 +127,7 @@ class TestANN(unittest.TestCase):
 
     def test_invalid_activation_count(self):
         with self.assertRaises(AssertionError):
-            ANN(layer_sizes=[3, 4, 2], activations=["relu"])  # manque une activation
+            ANN(layer_sizes=[3, 4, 2], activations=["relu","relu"])  # manque une activation
 
     def test_ANN_eq__(self):
 

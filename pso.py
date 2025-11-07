@@ -30,8 +30,7 @@ class PSO :
         gamma,
         delta,
         epsi, 
-        ANNStructure,
-        ANN_activation, 
+        ANNStructure, 
         AssessFitness, 
         informants_number, 
         setInformants, 
@@ -39,12 +38,13 @@ class PSO :
         
         #Remove Best in Particle class
         self.ANN_structure = ANNStructure  # given by an ANN instantiation
-        Particle.ANN_activation = ANN_activation
+       
         Particle.particleNumber = 0 
 
         self.setInformants = setInformants
         self.informants_number = informants_number
         self.fitnessFunc = AssessFitness
+
         # == PSO parameters == 
         self.swarmsize = swarmsize #           #10 -100                              [l1]
         
@@ -57,6 +57,10 @@ class PSO :
 
         self.max_iteration_number = max_iteration_number
 
+        if informants_number == 0 : 
+            # <==>
+            self.gamma == 0
+
         # == results == 
         self.P = []                                                          
         self.Best       = None #                                                       [l10]
@@ -67,7 +71,8 @@ class PSO :
         self.score_test = None 
         self.run_time = None
 
-
+    def train_step(self):
+        pass
 
     def train(self):
 
@@ -88,7 +93,11 @@ class PSO :
                     self.Best = x.vector.copy()#                                  [l15]
 
                     if type(self.BestANN) != ANN:
-                        self.BestANN = ANN(layer_sizes=self.ANN_structure, activations= [Particle.ANN_activation]*(len(self.ANN_structure)-1) )
+                         
+                        layer_sizes = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 0 ]
+                        activations = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 1 ]
+                        self.BestANN =   ANN(layer_sizes=layer_sizes, activations=activations)
+
                     self.BestANN.set_params(self.Best)
 
             # == Determination of each velocities == 
@@ -99,17 +108,22 @@ class PSO :
 
                 # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
                 xstar = x.best_x         #               [l17]
+                
                 # definition of the informants
                 x.x_informants = self.setInformants(x,self.P,self.informants_number) 
-                xplus = x.best_informant   #               [l18]
+                
+                xplus = np.zeros_like(xstar)
+                if informants_number != 0 :
+                    xplus = x.best_informant   #               [l18]
                 xmark = self.Best #                         [l19]
 
                 for i in range(x.vector.shape[0]) : #           [l20] 
                     b = random.random() * self.beta   #               [l21]
                     c = random.random() * self.gamma  #               [l22]
                     d = random.random() * self.delta  #               [l23]
-                    new_vel[i] = self.alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
-                x.velocity = new_vel                                                                                          # [l24]
+                    #              self inertia     global term                      social term (informants)     best version of x (~local fittest)
+                    new_vel[i] = self.alpha*vel[i] +b* (xstar[i] - vector[i] )  +c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i])    # [l24]
+                x.velocity = new_vel                                                                                        
             
             # == Mutation ==   
             for x in self.P : #                                      [l25]
@@ -226,8 +240,8 @@ if __name__ == "__main__" :
     Informants = randomParticleSet
     AssessFitness = inv_ANN_MSE
  
-    ANNStructure = [8,5,1]
-    ANN_activation = "linear"
+    ANNStructure = [8,'input',16,'relu',1,'sigmoid']
+  
     swarmsize = 10 
    
     alpha = 1 
@@ -236,8 +250,8 @@ if __name__ == "__main__" :
     delta = 1 
   
     epsi  = 0.3  
-    informants_number = 3 
-    max_iteration_number = 1
+    informants_number = 3
+    max_iteration_number = 100
 
     #== PSO == 
 
@@ -248,7 +262,6 @@ if __name__ == "__main__" :
         delta,
         epsi, 
         ANNStructure, 
-        ANN_activation,
         AssessFitness, 
         informants_number, 
         Informants, 
@@ -278,8 +291,6 @@ if __name__ == "__main__" :
         Informants, 
         max_iteration_number = max_iteration_number, 
         verbose = -1) 
-
-    
 
     # Warning a lot of assumptions : the ANN structure might be inefficient 
 
@@ -342,4 +353,4 @@ if __name__ == "__main__" :
     """
 
 Particle.reset()
-#==================== pso.py  | END ==============#
+#==================== pso.py  | END ==================#
