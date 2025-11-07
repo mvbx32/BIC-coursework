@@ -82,13 +82,15 @@ class ANN:
         assert len(layer_sizes) - 1 == len(activations), \
             "the total of activation functions must be equal to the number of hidden layers + output layer"
 
-        self.layer_sizes = layer_sizes
+
+        self.layer_sizes = layer_sizes # [dimension of the input, size of hidden layer 1, ..., size of hidden layer n, size of output layer]
         self.activations = activations
 
         # Create successive layers
         self.layers = [
+            #     n_input           n_output          activation function
             Layer(layer_sizes[i], layer_sizes[i+1], activations[i])
-            for i in range(len(layer_sizes) - 1)
+            for i in range(1,len(layer_sizes))
         ]
 
     def __eq__(self, ANN2):
