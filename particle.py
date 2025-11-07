@@ -25,63 +25,39 @@ class Particle :
     ANN_structure = None
     ANN_activation = None 
 
-    #np.array types
-    AssessFitness = None
-    # callable
-    Informants        = None
-    informants_number = None
     particleNumber = 0
-
-    # -- X! -- 
-    # np.array type
-    fittest_solution = None 
-    best_fitness = -1*np.inf   
-    bestANN = None  
-
 
     def reset():
         # WARNING : reset the Particle class between two consecutives PSO executions
 
         # ==   ANN     == 
-        Particle.ANN_structure = None
+      
         Particle.ANN_activation = None 
-
-        #np.array types
-        Particle.AssessFitness = None
-        # callable
-        Particle.Informants        = None
-        Particle.informants_number = None
         Particle.particleNumber = 0
 
         # -- X! -- 
         # np.array type
-        Particle.fittest_solution = None 
-        Particle.best_fitness = -1*np.inf   
-        Particle.bestANN = None  
+      
 
     
-    def __init__(self):  
+    def __init__(self, ANN_structure):  
     
         # * Error * #
-        assert(Particle.ANN_structure is not None) # -- Error Msg : ANN_structure undefined --
-        assert(Particle.AssessFitness is not None ) # -- Error Msg : Fitness undefined --
-        assert(Particle.Informants is not None)    # -- Error Msg : Informants selection undefined --
-        assert(Particle.informants_number is not None) 
         # *-------* #
-
         Particle.particleNumber += 1 
         self.id = Particle.particleNumber
 
         # init a random vector from a Random ANN
-        a = ANN(layer_sizes=Particle.ANN_structure, activations= [Particle.ANN_activation]*(len(Particle.ANN_structure)-1) )
-        self._vector = a.get_params().copy()
+        a = ANN(layer_sizes=ANN_structure, activations= [Particle.ANN_activation]*(len(ANN_structure)-1) )
+        self._vector = a.get_params().copy() # ??
+        
         # Init of the class variables
         self.__fitness = np.inf *-1
       
         self.velocity = np.zeros_like(self.vector)
 
         # Instantiation of the ANN to compute the fitness
-        self.ANN_model = ANN(layer_sizes=Particle.ANN_structure, activations=  [Particle.ANN_activation]*(len(Particle.ANN_structure)-1) )
+        self.ANN_model = ANN(layer_sizes = ANN_structure, activations=  [Particle.ANN_activation]*(len(ANN_structure)-1) )
         self.ANN_model.set_params(self.vector)
         
         # -- X* --
@@ -145,28 +121,13 @@ class Particle :
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
             self.best_x = self.vector.copy()
-
-
         # x+
         if new_fitness > self.best_informant_fitness : 
             self.best_informant = self.vector.copy()
             self.best_informant_fitness = new_fitness
-        # x!
-        if new_fitness > Particle.best_fitness : 
 
-            Particle.best_fitness = new_fitness
-            Particle.bestANN  = self.ANN_model.copy()
-            Particle.fittest_solution = self.ANN_model.get_params().copy()
-            print(new_fitness)
-            
-        
-            if new_fitness == np.array([0.00169545]) : 
-                print(Particle.fittest_solution, mse)
-                print()
-         
-
-    def assessFitness(self):
-        self.fitness= Particle.AssessFitness(self)
+    def assessFitness(self,fitnessFunc):
+        self.fitness= fitnessFunc(self)
 
     @property
     def informants(self): 
@@ -215,6 +176,6 @@ if __name__ == "__main__":
     Particle.AssessFitness = AssessFitness
     Particle.Informants = Informants
     Particle.informants_number = 0
-    Particle()
+    Particle([8,5,1])
 
 #==================== particule.py  | END ==============#

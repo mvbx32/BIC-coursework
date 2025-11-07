@@ -1,3 +1,4 @@
+#==================== pso.py   ==============#
 import time
 import random 
 import numpy as np
@@ -6,6 +7,7 @@ from particle import Particle
 from ANN_alone import * 
 import tqdm
 import xlrd
+from tools import * 
 
 # TODO : 
 
@@ -20,8 +22,112 @@ import xlrd
 # -     Setup logs + Saving of intermediar / final models 
 # ==           PSO          == 
 
+class PSO : 
+
+    def __init__(self, swarmsize, 
+        alpha, 
+        beta, 
+        gamma,
+        delta,
+        epsi, 
+        ANNStructure,
+        ANN_activation, 
+        AssessFitness, 
+        informants_number, 
+        setInformants, 
+        max_iteration_number, verbose):
+        
+        #Remove Best in Particle class
+        self.ANN_structure = ANNStructure  # given by an ANN instantiation
+        Particle.ANN_activation = ANN_activation
+        Particle.particleNumber = 0 
+
+        self.setInformants = setInformants
+        self.informants_number = informants_number
+        self.fitnessFunc = AssessFitness
+        # == PSO parameters == 
+        self.swarmsize = swarmsize #           #10 -100                              [l1]
+        
+        self.alpha = alpha #         /! rule of thumb (Somme might be 4 )       [l2]
+        self.beta = beta   #                                                     [l3]
+        self.gamma = gamma  #                                                    [l4]
+        self.delta = delta    #                                                  [l5]
+        self.epsilon = epsi   #                                                  [l6]
+        self.criteria = 1
+
+        self.max_iteration_number = max_iteration_number
+
+        # == results == 
+        self.P = []                                                          
+        self.Best       = None #                                                       [l10]
+        self.BestANN    = None
+        self.bestFitness = -np.inf
+        
+        self.score_train = None
+        self.score_test = None 
+        self.run_time = None
 
 
+
+    def train(self):
+
+        self.P = []                                                             #[l7]
+        for loop in range(self.swarmsize):                                      #[l8]
+            p = Particle(self.ANN_structure)
+            self.P.append(p)                                                    #[l9] # new random particle  
+
+        t0 = time.time()
+        it = 0 
+        for loop in range(self.max_iteration_number): #                          [l11]
+            print("Iteration {}".format(loop))
+            # == Determination of the Best == 
+            for x in self.P : #                                      [l12]
+                x.assessFitness(self.fitnessFunc) #                              [l13]
+                if  x.fitness > self.bestFitness: # [l14]
+                    self.bestFitness = x.fitness
+                    self.Best = x.vector.copy()#                                  [l15]
+
+                    if type(self.BestANN) != ANN:
+                        self.BestANN = ANN(layer_sizes=self.ANN_structure, activations= [Particle.ANN_activation]*(len(self.ANN_structure)-1) )
+                    self.BestANN.set_params(self.Best)
+
+            # == Determination of each velocities == 
+            for x in self.P : # [l16]
+                vel = x.velocity.copy()
+                vector = x.vector.copy()
+                new_vel =  x.velocity.copy()
+
+                # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
+                xstar = x.best_x         #               [l17]
+                # definition of the informants
+                x.x_informants = self.setInformants(x,self.P,self.informants_number) 
+                xplus = x.best_informant   #               [l18]
+                xmark = self.Best #                         [l19]
+
+                for i in range(x.vector.shape[0]) : #           [l20] 
+                    b = random.random() * self.beta   #               [l21]
+                    c = random.random() * self.gamma  #               [l22]
+                    d = random.random() * self.delta  #               [l23]
+                    new_vel[i] = self.alpha*vel[i] + b* (xstar[i] - vector[i] ) + c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i]) # [l24]
+                x.velocity = new_vel                                                                                          # [l24]
+            
+            # == Mutation ==   
+            for x in self.P : #                                      [l25]
+                vector = x.vector.copy()
+                x.vector +=  (self.epsilon*x.velocity) #      [l26]
+            
+            #if Particle.best_fitness > criteria : break # [l27]
+            
+            
+            it +=1
+        self.run_time = time.time() - t0
+
+        self.score_train = MSE( Data.X_train, Data.Y_train,self.BestANN)
+        self.score_test = MSE( Data.X_test, Data.Y_test,self.BestANN)
+        return self.Best, self.bestFitness, self.score_train, self.score_test , self.run_time 
+
+
+"""
 def PSO(swarmsize, 
         alpha, 
         beta, 
@@ -47,7 +153,7 @@ def PSO(swarmsize,
     # == PSO parameters == 
     swarmsize = swarmsize #           #10 -100                              [l1]
     
-    alpha = alpha #         /!\ rule of thumb (Somme might be 4 )       [l2]
+    alpha = alpha #         rule of thumb (Somme might be 4 )       [l2]
     beta = beta   #                                                     [l3]
     gamma = gamma  #                                                    [l4]
     delta = delta    #                                                  [l5]
@@ -105,38 +211,37 @@ def PSO(swarmsize,
         
         it +=1
     
-    return Particle.fittest_solution, # Vector representation
-
+    score_train = MSE( Data.X_train, Data.Y_train,Particle.bestANN)
+    score_test = MSE( Data.X_test, Data.Y_test,Particle.bestANN)
+    return Particle.fittest_solution, Particle.best_fitness, score_train, score_test # Vector representation
+    """
 if __name__ == "__main__" : 
 
     from data import Data 
-    from tools import * 
+    
+    np.random.seed(42)
+    random.seed(42)
     # %% Example 1 
-
+    # Issue : the result doesnot evolve with the change of max_iter when swarmsize = 1
     Informants = randomParticleSet
     AssessFitness = inv_ANN_MSE
  
     ANNStructure = [8,5,1]
-    ANN_activation = "relu"
-    swarmsize = 1 # between 10 - 100
-    # Acceleration weights | Clue : sum = 4 
+    ANN_activation = "linear"
+    swarmsize = 10 
+   
     alpha = 1 
-    beta  = 1 # cognitive influence ; c1 = 1.49445  https://doi.org/10.1155/2020/8875922
-    gamma = 1 # social influence ; c2 = 1.49445 
+    beta  = 1 
+    gamma = 1
     delta = 1 
-    # Jump size/ learning rate  | Clue : ? 
-    epsi  = 0.3  # https://doi.org/10.1155/2020/8875922 0.3
-    informants_number = 0 #arbitrary ; ? 
-    max_iteration_number = 10 # research paper  # https://doi.org/10.1155/2020/8875922
-    
-    """
-    X_train = np.linspace(0,100,10)
-    Y_train = np.linspace(0,100,10)
-    """
-    print(Particle.fittest_solution)
+  
+    epsi  = 0.3  
+    informants_number = 3 
+    max_iteration_number = 1
 
     #== PSO == 
-    best_solution = PSO(swarmsize, 
+
+    pso = PSO(swarmsize, 
         alpha, 
         beta, 
         gamma,
@@ -149,7 +254,31 @@ if __name__ == "__main__" :
         Informants, 
         max_iteration_number = max_iteration_number, 
         verbose = -1) 
+
+
+    print(pso.train())
     
+    pso.max_iteration_number = 10
+    print(pso.train())
+    pso.max_iteration_number = 20
+    print(pso.train())
+    
+
+    """
+    best_solution, best_fitness, score_train, score_test = PSO(swarmsize, 
+        alpha, 
+        beta, 
+        gamma,
+        delta,
+        epsi, 
+        ANNStructure, 
+        ANN_activation,
+        AssessFitness, 
+        informants_number, 
+        Informants, 
+        max_iteration_number = max_iteration_number, 
+        verbose = -1) 
+
     
 
     # Warning a lot of assumptions : the ANN structure might be inefficient 
@@ -178,10 +307,39 @@ if __name__ == "__main__" :
     fit = 1/mse
     
     print("1/mse ",fit,"Global Fitness saved", "1/MSE", AssessFitness(ann_model), "1/MSE saved", Particle.best_fitness)
-    
-    X_train, Y_train  = Data.X_test, Data.Y_test  # to modify
-    print(1/AssessFitness(Particle.bestANN))
+    print("SOlutions",best_solution, best_fitness, score_train, score_test)
+    Particle.reset()
+    print(PSO(swarmsize, 
+        alpha, 
+        beta, 
+        gamma,
+        delta,
+        epsi, 
+        ANNStructure, 
+        ANN_activation,
+        AssessFitness, 
+        informants_number, 
+        Informants, 
+        max_iteration_number = 10, 
+        verbose = -1) 
+    )
+    Particle.reset()
+    print(PSO(swarmsize, 
+        alpha, 
+        beta, 
+        gamma,
+        delta,
+        epsi, 
+        ANNStructure, 
+        ANN_activation,
+        AssessFitness, 
+        informants_number, 
+        Informants, 
+        max_iteration_number = 20, 
+        verbose = -1) )
 
+    Particle.reset()
+    """
 
-
-
+Particle.reset()
+#==================== pso.py  | END ==============#
