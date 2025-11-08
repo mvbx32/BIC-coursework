@@ -38,16 +38,15 @@ if __name__ == "__main__" :
     # variables_of_interest["swarmsize"] = SwarmsizeList
     ########### END of experiment details##########
     
-    np.random.seed(42)
-    random.seed(42)
+ 
 
     # Definition of the parameters
     Informants = randomParticleSet
     AssessFitness = inv_ANN_MSE
  
-    ANNStructure = [8,5,1]
-    ANN_activation = "relu"
-    swarmsize = 100
+    ANNStructure = [8,'input',5,'relu',1,'relu']
+
+    swarmsize = 10
     
     alpha = 0.5
     beta  = 1.5
@@ -65,7 +64,6 @@ if __name__ == "__main__" :
         delta,
         epsi, 
         ANNStructure, 
-        ANN_activation,
         AssessFitness, 
         informants_number, 
         Informants, 
@@ -74,7 +72,7 @@ if __name__ == "__main__" :
     # Parameters lists 
     # e.g. 
 
-    max_iteration_numberList = [1,10,20,100]
+    max_iteration_numberList = [100]
     # ----------- Arborescence creation ---------------- (To double check with the Synthesis below)
     root_path, results_path = create_experiment_dir(experiment_name,operator= operator)
     save_experiment_details(root_path, experiment_name, operator,
@@ -85,47 +83,89 @@ if __name__ == "__main__" :
 
     pso_id = 0 
     for pso_id in range(len(max_iteration_numberList)) : 
-        # For each hyperparameters values : 
-
-        # TODO : 
-        pso.max_iteration_number= max_iteration_numberList[pso_id]
         pso_dir,models_dir = create_pso_dir(root_path, pso_id)
-        params = { 
-        "ANNStructure" :  str(ANNStructure),
-        "ANN_activation":str(ANN_activation) , 
-        "swarmsize": str(swarmsize),
-        "alpha" : str(alpha),
-        "beta"  :  str(beta), 
-        "gamma" : str(gamma), 
-        "delta" : str(delta), 
-        "epsi"  : str(epsi),  
-        "Informants" : str(Informants),
-        "informants_number" :str(informants_number),
-        "AssessFitness" : str(AssessFitness),
-        "max_iteration_number" : str(max_iteration_number)}
-        save_pso_params(pso_dir, params)
-    
+        Fitness = []
+        Train = []
+        Test = []
+        Time = []
 
-        #== PSO == 
-        
-        best_solution, best_fitness, score_train, score_test, run_time = pso.train()    
+        AttemptNumber = 10
+        for attempt in range(AttemptNumber):
+
+            # For debugging
+
+            #np.random.seed(42)
+            #random.seed(42)
+
+            #
+
+
+            pso= PSO(swarmsize, 
+            alpha, 
+            beta, 
+            gamma,
+            delta,
+            epsi, 
+            ANNStructure, 
+            AssessFitness, 
+            informants_number, 
+            Informants, 
+            max_iteration_number = max_iteration_number, 
+            verbose = -1) 
+
+            pso.max_iteration_number= max_iteration_numberList[pso_id]
+
+            #== PSO == 
+            best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
+            
+            Fitness.append(best_fitness)
+            Train.append(score_train)
+            Test.append(score_test)
+            Time.append(run_time)
+
+            if attempt == 0 :
+                params = { 
+                "ANNStructure" :  str(ANNStructure) , 
+                "swarmsize": str(swarmsize),
+                "alpha" : str(alpha),
+                "beta"  :  str(beta), 
+                "gamma" : str(gamma), 
+                "delta" : str(delta), 
+                "epsi"  : str(epsi),  
+                "Informants" : str(Informants),
+                "informants_number" :str(informants_number),
+                "AssessFitness" : str(AssessFitness),
+                "max_iteration_number" : str(max_iteration_number)}
+                save_pso_params(pso_dir, params)
+
         # == exploitation == #
-        # evaluation on the training set 
+
+        fitness_avg, score_train_avg,score_train_std,score_test_avg, score_test_std, time_avg =np.mean(Fitness), np.mean(Train),np.std(Train),np.mean(Test),np.std(Test),np.mean(Time)
+    
         
         # == export == #
 
        
         # TODO : add the number of iterarion
-        '''"PSO_id", "swarmsize", "alpha", "beta", "gamma", "delta", "epsilon",
-            "best_fitness", "MSE_train", "MSE_test", "execution_time "'''
+
+        ''' "PSO_id",  "best_fitness avg", "MSE_train avg", "MSE_train std", "MSE_test avg","MSE_test std", "Attempt_number","number of iteration", "execution_time",
+        "swarmsize", "alpha", "beta", "gamma", "delta", "epsilon","ANN_strutcture" '''
+       
+
         
-        row_data = [pso_id,
+        row_data = [pso_id,fitness_avg, 
+                    score_train_avg,
+                    score_train_std, 
+                    score_test_avg,
+                    score_test_std,
+                    AttemptNumber,
+                    pso.max_iteration_number,
+                    run_time,
                     swarmsize,
                     alpha,beta,gamma,delta,epsi,
-                    best_fitness, 
-                    score_train, 
-                    score_test, 
-                    pso.max_iteration_number,run_time]
+                    str(pso.ANN_structure).replace('[','').replace(']','').replace(',',' ')]
+        row_data_str = [str(data) for data in row_data if (type(data)!= float) or (type(data)!= int)]
+        
         append_results_to_excel(results_path, row_data)
 
         # == end of the test == #
