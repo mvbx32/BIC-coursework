@@ -12,7 +12,7 @@ from data import Data
 from tools import * 
 
 Informants = randomParticleSet
-AssessFitness = inv_ANN_MSE
+AssessFitness = inv_ANN_MAE
 informants_number = 2 
 
 
@@ -26,26 +26,30 @@ class TestParticle(unittest.TestCase):
         self.Informants = Informants
         self.informants_number = informants_number
         self.ANN_activation = "linear"
-        self.ANN_structure = [8, 5, 1]
-        self.p = Particle(self.ANN_structure,self.ANN_activation)
+        self.ANN_structure = [8,'input', 5,'relu', 1,'relu']
+        self.p = Particle(self.ANN_structure)
+    
     """
+
     def test_initialization_requires_structure(self):
         self.ANN_structure = None
         with self.assertRaises(AssertionError):
-            p = Particle()"""
+            p = Particle()
+            
+    """
 
-
- 
     # ANN and vector representation
     def test_vector_length_matches_structure(self):
         
-        expected_len = np.sum([ (self.ANN_structure[i-1] + 1)*self.ANN_structure[i]  for i in range(1,len(self.ANN_structure))])# 8 * 5  + (5*1) + 5 * 1 + (1*1) # SUM_layers(inputs number + nb bias)
+        ANN_layers = [ self.ANN_structure[i]  for i in range(len(self.ANN_structure)) if i%2==0 ]# 8 * 5  + (5*1) + 5 * 1 + (1*1) # SUM_layers(inputs number + nb bias)
+
+        expected_len = np.sum([ (ANN_layers[i-1] + 1)*ANN_layers[i]  for i in range(1,len(ANN_layers))  ])# 8 * 5  + (5*1) + 5 * 1 + (1*1) # SUM_layers(inputs number + nb bias)
         self.assertEqual(len(self.p.vector), expected_len)
 
 
     def test_ann_model_created(self):
         self.assertIsInstance(self.p.ANN_model, ANN)
-        self.assertEqual(self.p.ANN_model.layer_size, self.ANN_structure)
+        self.assertEqual(self.p.ANN_model.layer_size, [self.ANN_structure[i] for i in range(len(self.ANN_structure)) if i%2 ==0  ] ) 
         ann_params = self.p.ANN_model.get_params()
         self.assertTrue((self.p.vector == ann_params).all()) 
 
@@ -54,14 +58,14 @@ class TestParticle(unittest.TestCase):
         self.assertTrue(np.isinf(self.p._best_fitness)) 
 
     def test_eq_method(self):
-        p2 = Particle(self.ANN_structure,self.ANN_activation)
+        p2 = Particle(self.ANN_structure)
         p2._vector = self.p.vector.copy()
         self.assertTrue(self.p == p2)
         p2._vector = np.array([999])
         self.assertFalse(self.p == p2)
 
     def test_copy(self):
-        p1 = Particle(self.ANN_structure,self.ANN_activation)
+        p1 = Particle(self.ANN_structure)
         p2 = p1.copy()
 
         self.assertFalse(p1.ANN_model is p2.ANN_model)  # False 
@@ -71,7 +75,10 @@ class TestParticle(unittest.TestCase):
         self.assertFalse(np.allclose(p1.vector, p2.vector))  # False  """
 
     def test_vector_setter(self):
-        a2 = ANN(self.ANN_structure,[self.ANN_activation for i in range(len(self.ANN_structure)-1)])
+
+        ANN_layers = [ self.ANN_structure[i] for i in range(len(self.ANN_structure)) if i%2 == 0]
+        ANN_acti = [ self.ANN_structure[i] for i in range(len(self.ANN_structure)) if i%2 == 1]
+        a2 = ANN(ANN_layers, ANN_acti)
         self.p.vector = a2.get_params()
 
         self.assertTrue((self.p._vector == self.p.vector).all()  # Does the accesseur modify well the variable ?
@@ -80,9 +87,9 @@ class TestParticle(unittest.TestCase):
 
     def test_fitness_setter(self): 
 
-        p1 = Particle(self.ANN_structure,self.ANN_activation)
+        p1 = Particle(self.ANN_structure)
         p1.assessFitness(self.AssessFitness)
-        p2 = Particle(self.ANN_structure,self.ANN_activation)
+        p2 = Particle(self.ANN_structure)
         p2._fitness = p1.fitness + 10
     
         p1.vector = p2.vector # as if we were updating p value at the end of the PSO
@@ -90,9 +97,9 @@ class TestParticle(unittest.TestCase):
 
         self.assertTrue( (p1.best_x == p2.vector).all())
 
-        p1 = Particle(self.ANN_structure,self.ANN_activation)
+        p1 = Particle(self.ANN_structure)
         p1.assessFitness(self.AssessFitness)
-        p2 = Particle(self.ANN_structure,self.ANN_activation)
+        p2 = Particle(self.ANN_structure)
         p2._fitness = p1.fitness - 10
         p1.vector = p2.vector # as if we were updating p value at the end of the PSO
         p1.fitness = p2.fitness 
@@ -153,7 +160,7 @@ class TestParticle(unittest.TestCase):
             
             return (p1.best_informant_fitness >= p2.fitness), p1.best_informant, p1.best_informant_fitness
 
-        p2 = Particle(self.ANN_structure,self.ANN_activation)
+        p2 = Particle(self.ANN_structure)
         p2.fitness = 10
 
         greater,infor, fit = sub_test(p2)

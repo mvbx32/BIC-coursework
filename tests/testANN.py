@@ -14,7 +14,7 @@ from tools import *
 # %% Example 1 
 
 Informants = randomParticleSet
-AssessFitness = inv_ANN_MSE
+AssessFitness = inv_ANN_MAE
 #WARNING : TAKE CARE OF THE FACT THAT THE TEST INSTANTIATION HAVE THE SAME DIMENSIONS THAT THE ONE USED IN THE PSO otherwise error using the data set
 
 
