@@ -4,9 +4,6 @@ from pso import *
 from tools import * 
 from export_tools import *
 
-# ISSUE : the evolution is not monotone
-# 
-
 # TODO : 
 # Add the activation functions + structure
 # Handle the fails : save step by step + indicate on the file if failed
@@ -27,37 +24,37 @@ if __name__ == "__main__" :
         # ====== Experiment details ==== 
     # 
     # Name of the experiment eg 
-    experiment_name = 'task 2'
+    experiment_name = 'Task3_LTV_ANN2'
     operator = "M" # / "A" : first letter of the name of the human supervisor 
     # Description eg.
-    description = ' This experiment aims... ' 
+    description = 'Test with another ANN structure ' 
     # Goal 
 
     # Variables of interest : which variables are going to be modified
     variables_of_interest = {}
     # variables_of_interest["swarmsize"] = SwarmsizeList
     ########### END of experiment details##########
-    
- 
+
+
 
     # Definition of the parameters
     Informants = randomParticleSet
     AssessFitness = inv_ANN_MSE
  
-    ANNStructure = [8,'input',5,'relu',1,'relu']
+    ANNStructure = [8,'input',8,'relu',8,"relu",8,"relu",1,'relu']
 
     swarmsize = 10
     
-    alpha = 0.5
-    beta  = 1.5
-    gamma = 1.5
-    delta = 0.5 
+    alpha = 1
+    beta  = 1
+    gamma = 1
+    delta = 1 
   
     epsi  = 0.5  
-    informants_number = 10
-    max_iteration_number = 1
+    informants_number = 0
+    max_iteration_number = 100
 
-    pso= PSO(swarmsize, 
+    pso = PSO(swarmsize, 
         alpha, 
         beta, 
         gamma,
@@ -69,10 +66,11 @@ if __name__ == "__main__" :
         Informants, 
         max_iteration_number = max_iteration_number, 
         verbose = -1) 
+    
     # Parameters lists 
     # e.g. 
 
-    max_iteration_numberList = [100]
+    max_iteration_numberList = [10,100,110,120]
     # ----------- Arborescence creation ---------------- (To double check with the Synthesis below)
     root_path, results_path = create_experiment_dir(experiment_name,operator= operator)
     save_experiment_details(root_path, experiment_name, operator,
@@ -84,6 +82,8 @@ if __name__ == "__main__" :
     pso_id = 0 
     for pso_id in range(len(max_iteration_numberList)) : 
         pso_dir,models_dir = create_pso_dir(root_path, pso_id)
+
+        # Several Performances
         Fitness = []
         Train = []
         Test = []
@@ -96,9 +96,7 @@ if __name__ == "__main__" :
 
             #np.random.seed(42)
             #random.seed(42)
-
             #
-
 
             pso= PSO(swarmsize, 
             alpha, 
@@ -113,7 +111,9 @@ if __name__ == "__main__" :
             max_iteration_number = max_iteration_number, 
             verbose = -1) 
 
+            # Parameters to increment 
             pso.max_iteration_number= max_iteration_numberList[pso_id]
+            
 
             #== PSO == 
             best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
