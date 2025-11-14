@@ -2,6 +2,10 @@
 Coursework for the Biological Inpirational Computing course at Heriot Watt University.
 
 
+### Dependencies 
+
+-   xlrd >= 2.0.1 : for exel document exploitation
+
 ### Goals
 
 Aleas : 
