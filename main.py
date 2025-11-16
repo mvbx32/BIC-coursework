@@ -29,7 +29,7 @@ if __name__ == "__main__" :
     # Variables of interest : which variables are going to be modified
     variables_of_interest = {}
     #-- END of experiment details ----------------------------------
-
+    print("=============",experiment_name,"======================")
 
     ###################                    PSO PARAMETERS                ###########################
     
