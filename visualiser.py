@@ -81,9 +81,10 @@ def plot_contributions(contrib_df, decades):
         p = ax.bar(particles, values, label=period, bottom=bottom)
         bottom += values
     plt.xticks([i for i in particles])
-    ax.set_xlabel("Particle index")
+    
+    ax.set_xlabel("Particle ID")
     ax.set_ylabel("Number of times best")
-    ax.set_title("Particle Contributions per Period | swarmsize = {}".format(len(particles)))
+    ax.set_title("Particle contributions per Period | swarmsize = {}".format(len(particles)))
     ax.legend(title="Iteration Periods")
     plt.tight_layout()
   

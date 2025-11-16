@@ -50,6 +50,7 @@ def inv_ANN_MAE(ANN_model):
     return 1/MAE
 
 def minusMAE(ANN_model,X = X_train,Y= Y_train):
+    """  -MAE = -( SOMME {for i in [1, Ndata]} ( |Ydata_i - ANN(X_i) |) / Ndata ) """
     if type(ANN_model) == Particle : 
         ANN_model = ANN_model.ANN_model
     MAE = 0

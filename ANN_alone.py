@@ -35,7 +35,7 @@ class Layer:
         # n_output : number of neurons
         self.n_input = n_input
         self.n_neuron = n_output
-        self.W = np.random.randn(n_input, n_output) 
+        self.W = np.random.randn(n_input, n_output) # “standard normal” distribution
         self.b = np.random.randn(n_output)
         self.activationId= activation
         self.activation = getattr(Activation, activation)
