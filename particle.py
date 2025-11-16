@@ -153,7 +153,7 @@ class Particle :
 
         if informant_number != 0 : 
              
-            assert(type(new_informants[0]) == Particle and type(new_informants[1]) == float )
+            assert(type(new_informants[0]) == Particle and type(new_informants_fitness[1]) == float )
             for i in range(len(new_informants)) : 
                 infor = new_informants[i]
                 infor_fit = new_informants_fitness[i]
