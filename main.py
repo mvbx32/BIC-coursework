@@ -44,11 +44,11 @@ if __name__ == "__main__" :
     informants_number = 5
     Informants = randomParticleSet
     max_iteration_number = 1000
-    AttemptNumber = 10
+    AttemptNumber = 1
 
     # ////////////// Params to increment //////////////////////
-    max_iteration_numberList = [10,100,1000]
-    swarmsizeList = [10]
+    max_iteration_numberList = [1000]
+    swarmsizeList = [5]
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
@@ -99,7 +99,7 @@ if __name__ == "__main__" :
                             informants_number, 
                             Informants, 
                             max_iteration_number = max_iteration_number, 
-                            verbose = verbose) 
+                            verbose = 0) 
                 
                 
                 # ////////////// Params to increment //////////////////////

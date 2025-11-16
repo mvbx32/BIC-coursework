@@ -93,6 +93,12 @@ class PSO :
 
         self.ImprovementOfBest = [0]
 
+
+        self.inertia_history = []
+        self.local_history = []
+        self.social_history = []
+        self.global_history = []
+
     def train_step(self):
         pass
 
@@ -160,7 +166,9 @@ class PSO :
                 self.BestSolutions.append(self.Best)
                 self.BestFitnesses.append(self.bestFitness)
                 self.ImprovementOfBest.append((self.BestFitnesses[-1]  - self.BestFitnesses[-2])/(self.BestFitnesses[-1]  + self.BestFitnesses[-2]))
-                    
+                
+                Loc=[]; Glob=[];Soc=[];Inertia=[]
+
                 # == Determination of each velocities == 
                 for x in self.P : # [l16]
                     vel = x.velocity.copy()
@@ -181,17 +189,33 @@ class PSO :
                 
                     #self.alpha = 0.4 + (0.4-0.9)*(t-self.max_iteration_number)/self.max_iteration_number # adaptative  wmax = 0.9 , wmin = 0.4 [Sangputa]
 
-                    
+                   
+                    Lock=[]; Globk=[];Sock=[];Inertiak=[]
                     for i in range(x.vector.shape[0]) : #                     [l20] 
                         b = random.random()* self.beta   #               [l21]
                         c = random.random() * self.gamma  #               [l22]
                         d = random.random() * self.delta  #               [l23]
 
+                       
                         #              self inertia     best version of x (~local fittest)  social term (informants)    global term                      
                         new_vel[i] = self.alpha*vel[i] +b* (xstar[i] - vector[i] )  +c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i])    # [l24]
-                                        
+
                     
+                        Globk.append( abs(d * (xmark[i] - vector[i])))
+                        Inertiak.append( abs(self.alpha*vel[i]))
+                        Lock.append(abs(b* (xstar[i] - vector[i] )))
+                        Sock.append( abs(c* (xplus[i] - vector[i])))
+
+                    Glob.append(np.mean(Globk))
+                    Inertia.append(np.mean(Inertiak))
+                    Loc.append(np.mean(Lock))
+                    Soc.append(np.mean(Sock))
+
                     x.velocity = new_vel                                                                                        
+                self.inertia_history.append(np.mean(Inertia))
+                self.local_history.append(np.mean(Loc))
+                self.social_history.append(np.mean(Soc))
+                self.global_history.append(np.mean(Glob))
 
                 # == Mutation ==   
                 for x in self.P : #                                      [l25]
@@ -207,8 +231,18 @@ class PSO :
         self.score_train = MAE( Data.X_train, Data.Y_train,self.BestANN)
         self.score_test = MAE( Data.X_test, Data.Y_test,self.BestANN)
 
-        
-       
+
+        fig2, axs2 = plt.subplots(1, 1, layout='constrained')
+        axs2.set_title("Mean of the absolute value of the velocities components")
+        axs2.set_xlabel("iteration")
+        axs2.set_ylabel("Average of abs(component) across all particles")
+        axs2.plot(range(self.max_iteration_number),self.global_history ,label ="global", linewidth = 0.8)
+        axs2.plot(range(self.max_iteration_number),self.social_history ,label ="social", linewidth = 0.8)
+        axs2.plot(range(self.max_iteration_number),self.inertia_history,label ="inertial", linewidth = 0.8)
+        axs2.plot(range(self.max_iteration_number),self.local_history ,label ="loc", linewidth = 0.8)
+        plt.legend()
+        plt.plot()
+    
         # -- PLOT  ------------------------------------------------------------------------------------------ 
         if self.verbose != -1 : 
             try : 
@@ -248,7 +282,7 @@ class PSO :
                 fig1, axs1 = plt.subplots(1, 1, layout='constrained')
                 axs1.set_title("Interparticle distances")
                 axs1.set_xlabel("iteration")
-                axs0.set_ylabel("distance")
+                axs1.set_ylabel("distance")
                 axs1.plot(range(self.max_iteration_number),self.MaxDistance ,label ="max", linewidth = 0.8)
                 axs1.plot(range(self.max_iteration_number),self.MinDistance ,label ="min", linewidth = 0.8)
                 axs1.plot(range(self.max_iteration_number),self.AVGDistance ,label ="average", linewidth = 0.8)
@@ -256,7 +290,7 @@ class PSO :
                 plt.plot()
 
                 
-
+               
             
 
             
