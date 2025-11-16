@@ -47,7 +47,7 @@ if __name__ == "__main__" :
     AttemptNumber = 10
 
     # ////////////// Params to increment //////////////////////
-    max_iteration_numberList = [100]
+    max_iteration_numberList = [10,100,1000]
     swarmsizeList = [10]
     #__________________________________________________________________________________________________
 
@@ -81,6 +81,9 @@ if __name__ == "__main__" :
 
                 #############################################################################
 
+                verbose = -1
+                if max_iteration_number == 1000 :
+                    verbose = 0
 
                 pso= PSO(swarmsize, 
                             alpha, 
@@ -93,7 +96,7 @@ if __name__ == "__main__" :
                             informants_number, 
                             Informants, 
                             max_iteration_number = max_iteration_number, 
-                            verbose = 0) 
+                            verbose = verbose) 
                 
                 
                 # ////////////// Params to increment //////////////////////
