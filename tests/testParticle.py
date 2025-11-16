@@ -27,7 +27,11 @@ class TestParticle(unittest.TestCase):
         self.informants_number = informants_number
         self.ANN_activation = "linear"
         self.ANN_structure = [8,'input', 5,'relu', 1,'relu']
+
+        m = Particle.particleNumber 
         self.p = Particle(self.ANN_structure)
+
+        self.assertEqual(m+1,self.p.id)
     
     """
 

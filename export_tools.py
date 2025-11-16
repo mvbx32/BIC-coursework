@@ -24,8 +24,8 @@ def create_experiment_dir(experiment_name, operator):
     ws = wb.active
     ws.title = "Results"
     ws.append([
-        "PSO_id", "swarmsize", "alpha", "beta", "gamma", "delta", "epsilon",
-        "best_fitness", "MSE_train", "MSE_test", "number of iteration","execution_time"
+        "PSO_id",  "best_fitness_avg", "MAE_train avg", "MAE_train std", "MAE_test avg","MAE_test std", "Attempt_number","number of iteration", "execution_time",
+        "swarmsize","informants_number", "alpha", "beta", "gamma", "delta", "epsilon","ANN_strutcture"
     ])
     wb.save(results_path)
 
@@ -46,7 +46,6 @@ def save_experiment_details(root_path, experiment_name, operator, description, v
             f.write(f"  {k}: {v}\n")
     return details_path
 
-
 def create_pso_dir(root_path, pso_id):
     """
     Create a subdirectory for a PSO run.
@@ -64,8 +63,7 @@ def create_pso_batch_logs(root_path,pso_id): # to test
     ws = wb.active
     ws.title = "Results"
     ws.append([
-            "PSO_id", "swarmsize", "alpha", "beta", "gamma", "delta", "epsilon",
-            "best_fitness", "MSE_train", "MSE_test", "number of iteration", "execution_time"
+            "PSO_id",  "best_fitness", "MAE_train", "MAE_test", "number of iteration", "execution_time", "swarmsize","informants_number", "alpha", "beta", "gamma", "delta", "epsilon","ANN_strutcture"
         ])
     wb.save(results_path)
 
@@ -145,8 +143,8 @@ def append_results_to_excel(results_path, row_data):
         ws = wb.active
         ws.title = "Results"
         ws.append([
-            "PSO_id", "swarmsize", "alpha", "beta", "gamma", "delta", "epsilon",
-            "best_fitness", "MSE_train", "MSE_test", "number of iteration", "execution_time"
+            "PSO_id",  "best_fitness", "MAE_train", "MAE_test", "number of iteration", "execution_time", "swarmsize","informants_number", "alpha", "beta", "gamma", "delta", "epsilon","ANN_strutcture"
+
         ])
     else:
         wb = load_workbook(results_path)

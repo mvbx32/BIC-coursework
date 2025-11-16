@@ -2,8 +2,7 @@
 import numpy as np
 import random 
 from ANN_alone import ANN
-
-
+import matplotlib as plt
 # WARNING and sources of mistakes / bugs
 # The best solution are stored as class Particle 
 # -> a multi task training (several experiments importing Particle at the same time) will fail
@@ -45,7 +44,7 @@ class Particle :
 
         # init a random vector from a Random ANN
 
-        
+        self.ANN_structure = ANN_structure
         layer_sizes = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 0 ]
         activations = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 1 ]
 
@@ -71,8 +70,13 @@ class Particle :
         self.best_informant_fitness = self.fitness # -1*np.inf
         # Remark : the fitnesses will be updated during the first Fitness Assessment (at the beginning of the PSO)
        
-        
-        
+        # == Stats == 
+
+        self.pbests = []
+        self.pbests_fitness = []
+        self.improv_x = 0
+        self.improv_x_list = [0]
+
    
     
     def __eq__(self, other): 
@@ -85,8 +89,8 @@ class Particle :
 
     def copy(self):
 
-        clone = Particle(self.ANN_model.layer_sizes, self.ANN_model.activations[0])
-        clone.vector = self.vector.copy()
+        clone = Particle(self.ANN_structure)
+        clone.vector =  self.vector.copy()
         clone.ANN_model = self.ANN_model.copy()
 
         return clone
@@ -112,6 +116,10 @@ class Particle :
     def fitness(self, new_fitness):  
         
         self._fitness = new_fitness
+        # before update of the best to see improvements as spikes
+        self.improv_x = (self.fitness  - self._best_fitness)/( self.fitness +self._best_fitness) 
+        self.improv_x_list.append(self.improv_x)
+     
 
         # x*
         if self._best_fitness < new_fitness : 
@@ -124,6 +132,10 @@ class Particle :
             self.best_informant = self.vector.copy()
             self.best_informant_fitness = new_fitness
 
+        self.pbests.append(self.best_x) # 
+        self.pbests_fitness.append(self._best_fitness)
+      
+
     def assessFitness(self,fitnessFunc):
         self.fitness= fitnessFunc(self)
 
@@ -133,11 +145,15 @@ class Particle :
     
     @informants.setter
     def informants(self,informants_data):      
-
-        new_informants, new_informants_fitness = informants_data
+        
+        assert(len(informants_data) == 2)
+       
+        new_informants, new_informants_fitness = informants_data[0], informants_data[1]
         informant_number = len(new_informants)
 
         if informant_number != 0 : 
+             
+            assert(type(new_informants[0]) == Particle and type(new_informants[1]) == float )
             for i in range(len(new_informants)) : 
                 infor = new_informants[i]
                 infor_fit = new_informants_fitness[i]
@@ -173,7 +189,7 @@ if __name__ == "__main__":
     from tools import * 
 
     Informants = randomParticleSet
-    AssessFitness = inv_ANN_MSE
+    AssessFitness = inv_ANN_MAE
        
     ANN_structure = [8,'input',5,'linear',1,'sigmoid']
     ANN_activation = 'linear'

@@ -5,6 +5,8 @@ Coursework for the Biological Inpirational Computing course at Heriot Watt Unive
 ### Dependencies 
 
 -   xlrd >= 2.0.1 : for exel document exploitation
+-  tqdm
+- pandas
 
 ### Goals
 

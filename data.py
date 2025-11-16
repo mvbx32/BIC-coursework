@@ -28,25 +28,36 @@ import random
 #---Outputs 
 #Concrete compressive strength	Target	Continuous		MPa	
 
+def split_data_stratified(train_frac=0.8, n_bins=10, random_state=42):
+    """
+
+    Returns: X_train_scaled, y_train_scaled, X_test_scaled, y_test_scaled
+    """
+    df = pd.read_csv('data/concrete_data.csv')
+    X = df.drop(columns=['concrete_compressive_strength']).values
+    y = df['concrete_compressive_strength'].values
+
+    return X,y
+
+       
+
 class Data :
     """
     Class to support the data as a global variable.
     """
     # Advice : 70% for training, 30% for test 
     data = np.array(pd.read_excel("data/Concrete_Data.xls"))
-    #data_list = list(data)
+    data_list = list(data)
     sets_index = int(data.shape[0]*0.7)
     train_data = data[:sets_index,:] # samples
     test_data = data[sets_index:,:]
-
-
+    
     X_train = train_data[:,:-1]
     X_test =  test_data[:,:-1]
 
     Y_train = train_data[:,-1]
     Y_test = test_data[:,-1]
-    
-    
+
 
 
 
