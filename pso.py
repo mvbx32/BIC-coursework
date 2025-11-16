@@ -108,94 +108,97 @@ class PSO :
 
         BestId = None
 
-
-       
-        for t in range(self.max_iteration_number): #                          [l11]
-            # == Determination of the Best == 
-            
-            RelativeImprovements = []
-            Distances = np.zeros((self.swarmsize,self.swarmsize))
-
-            for x in self.P : #                                      [l12]
+        with tqdm.tqdm(total = self.swarmsize ) as bar : 
+        
+            for t in range(self.max_iteration_number): #                          [l11]
+                # == Determination of the Best == 
                 
-                x.assessFitness(self.fitnessFunc) #                              [l13]
-                if  x.fitness > self.bestFitness: # [l14]
-                    self.bestFitness = x.fitness
-                    self.Best = x.vector.copy()#                                  [l15]
+                if t%10 == 0 : 
+                    bar.update(t)
+
+                RelativeImprovements = []
+                Distances = np.zeros((self.swarmsize,self.swarmsize))
+
+                for x in self.P : #                                      [l12]
                     
-                    BestId = x.id
+                    x.assessFitness(self.fitnessFunc) #                              [l13]
+                    if  x.fitness > self.bestFitness: # [l14]
+                        self.bestFitness = x.fitness
+                        self.Best = x.vector.copy()#                                  [l15]
+                        
+                        BestId = x.id
+                        
+                        if type(self.BestANN) != ANN:
+                            
+                            layer_sizes = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 0 ]
+                            activations = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 1 ]
+                            self.BestANN =   ANN(layer_sizes=layer_sizes, activations=activations)
+
+                        self.BestANN.set_params(self.Best)
                     
-                    if type(self.BestANN) != ANN:
-                         
-                        layer_sizes = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 0 ]
-                        activations = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 1 ]
-                        self.BestANN =   ANN(layer_sizes=layer_sizes, activations=activations)
+                    RelativeImprovements.append(x.improv_x)
 
-                    self.BestANN.set_params(self.Best)
+                if self.swarmsize >1 : 
+                    Distances = {}
+                    for i,p1 in enumerate(self.P) : 
+                        for j,p2 in enumerate(self.P):
+                            if not(i == j) and not (j,i) in Distances :  # dist(xi,xi) is trivial
+                                Distances[(i,j)]= np.linalg.norm(p1.vector-p2.vector,2)
+
+                    self.MaxDistance.append(np.max(list(Distances.values())))
+                    self.MinDistance.append(np.min(list(Distances.values()))) 
+                    self.AVGDistance.append(np.mean(list(Distances.values()))) 
+                else : 
+                    self.MaxDistance.append(0)
+                    self.MinDistance.append(0)
+                    self.AVGDistance.append(0) 
+
+                self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements))
+                self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements))
+                self.BestPaternityHistory.append(BestId)
                 
-                RelativeImprovements.append(x.improv_x)
+                self.BestSolutions.append(self.Best)
+                self.BestFitnesses.append(self.bestFitness)
+                self.ImprovementOfBest.append((self.BestFitnesses[-1]  - self.BestFitnesses[-2])/(self.BestFitnesses[-1]  + self.BestFitnesses[-2]))
+                    
+                # == Determination of each velocities == 
+                for x in self.P : # [l16]
+                    vel = x.velocity.copy()
+                    vector = x.vector.copy()
+                    new_vel =  x.velocity.copy()
 
-            if self.swarmsize >1 : 
-                Distances = {}
-                for i,p1 in enumerate(self.P) : 
-                    for j,p2 in enumerate(self.P):
-                        if not(i == j) and not (j,i) in Distances :  # dist(xi,xi) is trivial
-                            Distances[(i,j)]= np.linalg.norm(p1.vector-p2.vector,2)
+                    # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
+                    xstar = x.best_x         #               [l17]
+                    
+                    # definition of the informants
+                    x.x_informants = self.setInformants(x,self.P,self.informants_number) 
 
-                self.MaxDistance.append(np.max(list(Distances.values())))
-                self.MinDistance.append(np.min(list(Distances.values()))) 
-                self.AVGDistance.append(np.mean(list(Distances.values()))) 
-            else : 
-                self.MaxDistance.append(0)
-                self.MinDistance.append(0)
-                self.AVGDistance.append(0) 
-
-            self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements))
-            self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements))
-            self.BestPaternityHistory.append(BestId)
-             
-            self.BestSolutions.append(self.Best)
-            self.BestFitnesses.append(self.bestFitness)
-            self.ImprovementOfBest.append((self.BestFitnesses[-1]  - self.BestFitnesses[-2])/(self.BestFitnesses[-1]  + self.BestFitnesses[-2]))
+                    xplus = np.zeros_like(xstar)
+                    if self.informants_number != 0 :
+                        xplus = x.best_informant   #               [l18]
+                    
+                    xmark = self.Best #                            [l19]
                 
-            # == Determination of each velocities == 
-            for x in self.P : # [l16]
-                vel = x.velocity.copy()
-                vector = x.vector.copy()
-                new_vel =  x.velocity.copy()
+                    #self.alpha = 0.4 + (0.4-0.9)*(t-self.max_iteration_number)/self.max_iteration_number # adaptative  wmax = 0.9 , wmin = 0.4 [Sangputa]
 
-                # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
-                xstar = x.best_x         #               [l17]
+                    
+                    for i in range(x.vector.shape[0]) : #                     [l20] 
+                        b = random.random()* self.beta   #               [l21]
+                        c = random.random() * self.gamma  #               [l22]
+                        d = random.random() * self.delta  #               [l23]
+
+                        #              self inertia     best version of x (~local fittest)  social term (informants)    global term                      
+                        new_vel[i] = self.alpha*vel[i] +b* (xstar[i] - vector[i] )  +c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i])    # [l24]
+                                        
+                    
+                    x.velocity = new_vel                                                                                        
+
+                # == Mutation ==   
+                for x in self.P : #                                      [l25]
+                    vector = x.vector.copy()
+                    x.vector +=  (self.epsilon*x.velocity) #      [l26]
                 
-                # definition of the informants
-                x.x_informants = self.setInformants(x,self.P,self.informants_number) 
-
-                xplus = np.zeros_like(xstar)
-                if self.informants_number != 0 :
-                    xplus = x.best_informant   #               [l18]
-                
-                xmark = self.Best #                            [l19]
-               
-                #self.alpha = 0.4 + (0.4-0.9)*(t-self.max_iteration_number)/self.max_iteration_number # adaptative  wmax = 0.9 , wmin = 0.4 [Sangputa]
-
-                
-                for i in range(x.vector.shape[0]) : #                     [l20] 
-                    b = random.random()* self.beta   #               [l21]
-                    c = random.random() * self.gamma  #               [l22]
-                    d = random.random() * self.delta  #               [l23]
-
-                    #              self inertia     best version of x (~local fittest)  social term (informants)    global term                      
-                    new_vel[i] = self.alpha*vel[i] +b* (xstar[i] - vector[i] )  +c* (xplus[i] - vector[i]) + d * (xmark[i] - vector[i])    # [l24]
-                                    
-                   
-                x.velocity = new_vel                                                                                        
-
-            # == Mutation ==   
-            for x in self.P : #                                      [l25]
-                vector = x.vector.copy()
-                x.vector +=  (self.epsilon*x.velocity) #      [l26]
-            
-            #if Particle.best_fitness > criteria : break # [l27]    
+                #if Particle.best_fitness > criteria : break # [l27]    
            
 
        
@@ -205,74 +208,73 @@ class PSO :
         self.score_test = MAE( Data.X_test, Data.Y_test,self.BestANN)
 
         
-        fig0, axs0 = plt.subplots(1, 1, layout='tight')
-        axs0.set_title("Relative improvements of the SWARM")
-        axs0.set_ylim([-1.1,1.1])
-        axs0.set_xlabel("iteration")
-        axs0.set_ylabel("relative improvement")
-        axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG),'+',c="#008fd5", label = "Average")
-        #axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), linewidth = 0.6)
-        #axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD), linewidth = 0.6)
-        axs0.fill_between(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD),color ="#BBE4F8" ,  label = "Standard deviation")
-        
-        axs0.plot(range(self.max_iteration_number),self.ImprovementOfBest[1:], "+",c = "#E4080A", label = "Best particle")
-        axs0.legend()
-        
-        fig, axs = plt.subplots(self.swarmsize, 1, layout='constrained')
-        axe = None
-        for i,p in enumerate(self.P) : 
-            if self.swarmsize == 1 : 
-                axe = axs 
-            else : axe = axs[i]
-
-            if i == 1 : axe.set_title("Relative improvement")
-            
-            axe.set_ylim([-1.1,1.1])
-            axe.plot(p.improv_x_list, label = str(i+1),linewidth = 0.8 )
-            #axe.set_xlabel('improvement')
-            axe.set_ylabel('id {}'.format(i+1))
-            axe.grid(True)
-            if i+1 == self.BestPaternityHistory[-1] : 
-                axe.yaxis.label.set_color('red')
-        axe.set_xlabel("iteration")
-        fig.tight_layout()
-        
-        fig1, axs1 = plt.subplots(1, 1, layout='constrained')
-        axs1.set_title("Interparticle distances")
-        axs1.set_xlabel("iteration")
-        axs0.set_ylabel("distance")
-        axs1.plot(range(self.max_iteration_number),self.MaxDistance ,label ="max", linewidth = 0.8)
-        axs1.plot(range(self.max_iteration_number),self.MinDistance ,label ="min", linewidth = 0.8)
-        axs1.plot(range(self.max_iteration_number),self.AVGDistance ,label ="average", linewidth = 0.8)
-        plt.legend()
-        plt.plot()
-
-        
-
        
-
-       
-        plt.figure()
-        plt.title("Id of the best particle")
-        plt.ylim([0, self.swarmsize + 1 ])
-        plt.xlabel("iteration")
-        plt.ylabel("id")
-        plt.plot(self.BestPaternityHistory,"s")
-        plt.grid(True)
-        plt.yticks([i+1 for i in range(self.swarmsize)])
-        plt.show()
-
-        plt.tight_layout()
-        decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)
-        plot_contributions(contributions,decades)
-        plt.show()
         # -- PLOT  ------------------------------------------------------------------------------------------ 
         if self.verbose != -1 : 
             try : 
                 print("== Plot == ")
+                fig0, axs0 = plt.subplots(1, 1, layout='tight')
+                axs0.set_title("Relative improvements of the SWARM")
+                axs0.set_ylim([-1.1,1.1])
+                axs0.set_xlabel("iteration")
+                axs0.set_ylabel("relative improvement")
+                axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG),'+',c="#008fd5", label = "Average")
+                #axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), linewidth = 0.6)
+                #axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD), linewidth = 0.6)
+                axs0.fill_between(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD),color ="#BBE4F8" ,  label = "Standard deviation")
+                
+                axs0.plot(range(self.max_iteration_number),self.ImprovementOfBest[1:], "+",c = "#E4080A", label = "Best particle")
+                axs0.legend()
+                
+                fig, axs = plt.subplots(self.swarmsize, 1, layout='constrained')
+                axe = None
+                for i,p in enumerate(self.P) : 
+                    if self.swarmsize == 1 : 
+                        axe = axs 
+                    else : axe = axs[i]
+
+                    if i == 1 : axe.set_title("Relative improvement")
+                    
+                    axe.set_ylim([-1.1,1.1])
+                    axe.plot(p.improv_x_list, label = str(i+1),linewidth = 0.8 )
+                    #axe.set_xlabel('improvement')
+                    axe.set_ylabel('id {}'.format(i+1))
+                    axe.grid(True)
+                    if i+1 == self.BestPaternityHistory[-1] : 
+                        axe.yaxis.label.set_color('red')
+                axe.set_xlabel("iteration")
+                fig.tight_layout()
+                
+                fig1, axs1 = plt.subplots(1, 1, layout='constrained')
+                axs1.set_title("Interparticle distances")
+                axs1.set_xlabel("iteration")
+                axs0.set_ylabel("distance")
+                axs1.plot(range(self.max_iteration_number),self.MaxDistance ,label ="max", linewidth = 0.8)
+                axs1.plot(range(self.max_iteration_number),self.MinDistance ,label ="min", linewidth = 0.8)
+                axs1.plot(range(self.max_iteration_number),self.AVGDistance ,label ="average", linewidth = 0.8)
+                plt.legend()
+                plt.plot()
 
                 
-                
+
+            
+
+            
+                plt.figure()
+                plt.title("Id of the best particle")
+                plt.ylim([0, self.swarmsize + 1 ])
+                plt.xlabel("iteration")
+                plt.ylabel("id")
+                plt.plot(self.BestPaternityHistory,"s")
+                plt.grid(True)
+                plt.yticks([i+1 for i in range(self.swarmsize)])
+                plt.show()
+
+                plt.tight_layout()
+                decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)
+                plot_contributions(contributions,decades)
+                plt.show()
+                        
      
             except Exception as e : 
                 print("Plot failed " ,e)

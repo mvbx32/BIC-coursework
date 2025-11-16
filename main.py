@@ -21,7 +21,7 @@ if __name__ == "__main__" :
 
     # -- Experiment details ----------------------------------------
     # Name of the experiment eg 
-    experiment_name = 'Task3_Spread_init_100_KNN_Informants'
+    experiment_name = 'VanillaPSOBenchmark1'
     operator = "M" # / "A" : first letter of the name of the human supervisor 
     # Description eg.
     description = 'VanillaPSO ' 
@@ -41,7 +41,7 @@ if __name__ == "__main__" :
     gamma = 1 # informant
     delta = 1 # global #when 0 : no evolution
     epsi  = 0.5
-    informants_number = 0
+    informants_number = 5
     Informants = randomParticleSet
     max_iteration_number = 1000
     AttemptNumber = 10
@@ -82,9 +82,12 @@ if __name__ == "__main__" :
                 #############################################################################
 
                 verbose = -1
-                if max_iteration_number == 1000 :
+                if iter == 1000 and attempt == 0 :
                     verbose = 0
 
+                if attempt in [5] : 
+                    print("Attempt ", attempt)
+                
                 pso= PSO(swarmsize, 
                             alpha, 
                             beta, 

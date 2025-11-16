@@ -74,10 +74,10 @@ def randomParticleSet(x,P,informants_number):
 
     R = random.sample(P,informants_number)
 
-    new_informants = [p.vector.copy() for p in R]
+    new_informants = R
     fitnesses =[float(p.fitness) for p in R]
 
-    x.informants = (new_informants,fitnesses)
+
     return new_informants, fitnesses
 
 def k_nearest_neighboors(x,P, informants_number):
