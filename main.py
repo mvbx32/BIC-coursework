@@ -1,4 +1,4 @@
-#==================== main.py ==============#
+#==================== main.py ============== #
 from data import Data
 from pso import * 
 from tools import * 
@@ -9,7 +9,6 @@ from export_tools import *
 # Handle the fails : save step by step + indicate on the file if failed
 # Rigourous class tests
 # modify the script to run 10 times each config and compute the average and the standard deviation
-#
 
 #Same result as in PSO example if we set only one PSO to check
 
@@ -19,29 +18,23 @@ from export_tools import *
 
 
 if __name__ == "__main__" : 
-    pass
-    # ====== Experiment details ==== 
-    # 
+
+    # -- Experiment details ----------------------------------------
     # Name of the experiment eg 
     experiment_name = 'Task3_Spread_init_100_KNN_Informants'
     operator = "M" # / "A" : first letter of the name of the human supervisor 
     # Description eg.
-    description = 'Task3 PSO ' 
+    description = 'VanillaPSO ' 
     # Goal 
-
     # Variables of interest : which variables are going to be modified
     variables_of_interest = {}
-    # variables_of_interest["swarmsize"] = SwarmsizeList
-    ########### END of experiment details ##########
+    #-- END of experiment details ----------------------------------
 
 
-
-    # Definition of the parameters
-    Informants = randomParticleSet
+    ###################                    PSO PARAMETERS                ###########################
+    
     AssessFitness = minusMAE
-  
     ANNStructure = [8,'input',5,"sigmoid",1,'linear']
-
     swarmsize = 40
     alpha = 1 # inertia # 
     beta  = 1 # local
@@ -49,99 +42,93 @@ if __name__ == "__main__" :
     delta = 1 # global #when 0 : no evolution
     epsi  = 0.5
     informants_number = 0
+    Informants = randomParticleSet
     max_iteration_number = 1000
+    AttemptNumber = 10
 
-
-    
-    # Parameters lists 
-    # e.g. 
-
+    # ////////////// Params to increment //////////////////////
     max_iteration_numberList = [100]
-    swarmsizeList = [100]
-    # ----------- Arborescence creation ---------------- (To double check with the Synthesis below)
+    swarmsizeList = [10]
+    #__________________________________________________________________________________________________
+
+    # -----------                   Creation of an Arborescence                  ---------------- #
     root_path, results_path = create_experiment_dir(experiment_name,operator= operator)
     save_experiment_details(root_path, experiment_name, operator,
                              "Evaluation of the impact of the number of iteration",
                              variables_of_interest)
-    
+    # -----------                                                                ---------------- #
     
     pso_id = 0 
     for iter in max_iteration_numberList : 
         for swarmsize in swarmsizeList : 
+            
+            # --  Monitoring ------------------------------------------------------
             print("pso id {} itermax {} swarm {}  ".format(pso_id, iter, swarmsize))
             pso_id +=1
             pso_dir,models_dir = create_pso_dir(root_path, pso_id)
-
-            # Several Performances
-
             Fitness = []
             Train = []
             Test =  []
             Time =  []
 
-            AttemptNumber = 1
-           
+            
             for attempt in range(AttemptNumber):
 
-                # For debugging
+                # $ - - For Debugging only - - $
                 #np.random.seed(42)
                 #random.seed(42)
-                #
+                # $----------------------------$
+
+                #############################################################################
+
 
                 pso= PSO(swarmsize, 
-                alpha, 
-                beta, 
-                gamma,
-                delta,
-                epsi, 
-                ANNStructure, 
-                AssessFitness, 
-                informants_number, 
-                Informants, 
-                max_iteration_number = max_iteration_number, 
-                verbose = 0) 
-
-                # Parameters to increment 
+                            alpha, 
+                            beta, 
+                            gamma,
+                            delta,
+                            epsi, 
+                            ANNStructure, 
+                            AssessFitness, 
+                            informants_number, 
+                            Informants, 
+                            max_iteration_number = max_iteration_number, 
+                            verbose = 0) 
+                
+                
+                # ////////////// Params to increment //////////////////////
                 pso.max_iteration_number= iter
                 pso.swarmsize = swarmsize
-
-                #== PSO == 
+                #  == Results ==============================================================
                 best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
+
+                #___________________________________________________________________________
                 
+
+                
+                # -- Monitoring  ------------------------------------------------------------
                 Fitness.append(best_fitness)
                 Train.append(score_train)
                 Test.append(score_test)
                 Time.append(run_time)
-  
                 if attempt == 0 :
                     params = { 
-                    "ANNStructure" :  str(ANNStructure) , 
-                    "swarmsize": str(swarmsize),
-                    "alpha" : str(alpha),
-                    "beta"  :  str(beta), 
-                    "gamma" : str(gamma), 
-                    "delta" : str(delta), 
-                    "epsi"  : str(epsi),  
-                    "Informants" : str(Informants),
-                    "informants_number" :str(informants_number),
-                    "AssessFitness" : str(AssessFitness),
-                    "max_iteration_number" : str(max_iteration_number)}
-                    save_pso_params(pso_dir, params)
+                                "ANNStructure" :  str(ANNStructure) , "swarmsize": str(swarmsizeList),"AssessFitness" : str(AssessFitness.__doc__), "max_iteration_number" : str(max_iteration_numberList),
+                                "alpha" : str(alpha),"beta"  :  str(beta), "gamma" : str(gamma),  "delta" : str(delta),   "epsi"  : str(epsi),   
+                                "Informants" : str(Informants),
+                                "informants_number" :str(informants_number)
 
-            # == exploitation == #
+                            }
+                    save_pso_params(pso_dir, params)
+                # -----------                                -------------                             ---------------- #
+
+
+            # --  Exploitation  ----------------------------------------------------------------------------------------- #
 
             fitness_avg, score_train_avg,score_train_std,score_test_avg, score_test_std, time_avg =np.mean(Fitness), np.mean(Train),np.std(Train),np.mean(Test),np.std(Test),np.mean(Time)
-        
             print(fitness_avg, score_train_avg,score_train_std,score_test_avg, score_test_std, time_avg)
-            # == export == #
-
-        
-            # TODO : add the number of iterarion
-
-            ''' "PSO_id",  "best_fitness avg", "MAE_train avg", "MAE_train std", "MAE_test avg","MAE_test std", "Attempt_number","number of iteration", "execution_time",
-            "swarmsize","informants_number", "alpha", "beta", "gamma", "delta", "epsilon","ANN_strutcture" '''
-        
-
+            
+            # --  Export        ----------------------------------------------------------------------------------------- #
             
             row_data = [pso_id,fitness_avg, 
                         score_train_avg,
@@ -159,12 +146,9 @@ if __name__ == "__main__" :
             
             append_results_to_excel(results_path, row_data)
 
-            # == end of the test == #
-        
-        #=======================#
+            # == END of the attempts == #
 
-
-        # == END FOR == #
+        # == END of the evaluations  == #
 
 
 
