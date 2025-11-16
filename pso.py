@@ -3,6 +3,8 @@ import time
 import random 
 import numpy as np
 import matplotlib.pyplot as plt
+#plt.style.use('ggplot')
+plt.style.use("fivethirtyeight")
 from particle import Particle
 from ANN_alone import * 
 import tqdm
@@ -133,17 +135,20 @@ class PSO :
                 
                 RelativeImprovements.append(x.improv_x)
 
-            Distances = {}
-            for i,p1 in enumerate(self.P) : 
-                for j,p2 in enumerate(self.P):
-                    if not(i == j) and not (j,i) in Distances :  # dist(xi,xi) is trivial
-                        Distances[(i,j)]= np.linalg.norm(p1.vector-p2.vector,2)
+            if self.swarmsize >1 : 
+                Distances = {}
+                for i,p1 in enumerate(self.P) : 
+                    for j,p2 in enumerate(self.P):
+                        if not(i == j) and not (j,i) in Distances :  # dist(xi,xi) is trivial
+                            Distances[(i,j)]= np.linalg.norm(p1.vector-p2.vector,2)
 
-          
-        
-            self.MaxDistance.append(np.max(list(Distances.values())))
-            self.MinDistance.append(np.min(list(Distances.values()))) 
-            self.AVGDistance.append(np.mean(list(Distances.values()))) 
+                self.MaxDistance.append(np.max(list(Distances.values())))
+                self.MinDistance.append(np.min(list(Distances.values()))) 
+                self.AVGDistance.append(np.mean(list(Distances.values()))) 
+            else : 
+                self.MaxDistance.append(0)
+                self.MinDistance.append(0)
+                self.AVGDistance.append(0) 
 
             self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements))
             self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements))
@@ -200,46 +205,77 @@ class PSO :
         self.score_test = MAE( Data.X_test, Data.Y_test,self.BestANN)
 
         
+        fig0, axs0 = plt.subplots(1, 1, layout='tight')
+        axs0.set_title("Relative improvements of the SWARM")
+        axs0.set_ylim([-1.1,1.1])
+        axs0.set_xlabel("iteration")
+        axs0.set_ylabel("relative improvement")
+        axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG),'+',c="#008fd5", label = "Average")
+        #axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), linewidth = 0.6)
+        #axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD), linewidth = 0.6)
+        axs0.fill_between(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD),color ="#BBE4F8" ,  label = "Standard deviation")
+        
+        axs0.plot(range(self.max_iteration_number),self.ImprovementOfBest[1:], "+",c = "#E4080A", label = "Best particle")
+        axs0.legend()
+        
+        fig, axs = plt.subplots(self.swarmsize, 1, layout='constrained')
+        axe = None
+        for i,p in enumerate(self.P) : 
+            if self.swarmsize == 1 : 
+                axe = axs 
+            else : axe = axs[i]
+
+            if i == 1 : axe.set_title("Relative improvement")
+            
+            axe.set_ylim([-1.1,1.1])
+            axe.plot(p.improv_x_list, label = str(i+1),linewidth = 0.8 )
+            #axe.set_xlabel('improvement')
+            axe.set_ylabel('id {}'.format(i+1))
+            axe.grid(True)
+            if i+1 == self.BestPaternityHistory[-1] : 
+                axe.yaxis.label.set_color('red')
+        axe.set_xlabel("iteration")
+        fig.tight_layout()
+        
         fig1, axs1 = plt.subplots(1, 1, layout='constrained')
-        axs1.plot(range(self.max_iteration_number),self.MaxDistance ,label ="Max")
-        axs1.plot(range(self.max_iteration_number),self.MinDistance ,label ="Min")
-        axs1.plot(range(self.max_iteration_number),self.AVGDistance ,label ="AVG")
+        axs1.set_title("Interparticle distances")
+        axs1.set_xlabel("iteration")
+        axs0.set_ylabel("distance")
+        axs1.plot(range(self.max_iteration_number),self.MaxDistance ,label ="max", linewidth = 0.8)
+        axs1.plot(range(self.max_iteration_number),self.MinDistance ,label ="min", linewidth = 0.8)
+        axs1.plot(range(self.max_iteration_number),self.AVGDistance ,label ="average", linewidth = 0.8)
         plt.legend()
         plt.plot()
-        # == PLOT == 
+
+        
+
+       
+
+       
+        plt.figure()
+        plt.title("Id of the best particle")
+        plt.ylim([0, self.swarmsize + 1 ])
+        plt.xlabel("iteration")
+        plt.ylabel("id")
+        plt.plot(self.BestPaternityHistory,"s")
+        plt.grid(True)
+        plt.yticks([i+1 for i in range(self.swarmsize)])
+        plt.show()
+
+        plt.tight_layout()
+        decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)
+        plot_contributions(contributions,decades)
+        plt.show()
+        # -- PLOT  ------------------------------------------------------------------------------------------ 
         if self.verbose != -1 : 
             try : 
                 print("== Plot == ")
-                fig0, axs0 = plt.subplots(1, 1, layout='constrained')
-                axs0.set_ylim([-1,1])
-                axs0.plot(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG), label = "Global" ,capsize=3, fmt="+", c="blue")
-                axs0.fill_between(range(self.max_iteration_number),np.array(self.GlobalSelfImprovementAVG)-np.array(self.GlobalSelfImprovementSTD), np.array(self.GlobalSelfImprovementAVG)+np.array(self.GlobalSelfImprovementSTD), color = "#AAAAAA60")
-                axs0.plot(range(self.max_iteration_number),self.ImprovementOfBest[1:], "x", c = "red", label = "Improvement of the Best")
-                axs0.legend()
-               
-             
 
-                fig, axs = plt.subplots(self.swarmsize, 1, layout='constrained')
-                for i,p in enumerate(self.P) : 
-                    axs[i].set_ylim([-1,1])
-                    axs[i].plot(p.improv_x_list, label = str(i+1))
-                    axs[i].set_xlabel('Improvement')
-                    axs[i].set_ylabel('id {}'.format(i+1))
-                    axs[i].grid(True)
-                    if i+1 == self.BestPaternityHistory[-1] : 
-                        axs[i].yaxis.label.set_color('red')
-
-                plt.figure()
-                plt.title("Best solution particle id")
-                plt.plot(self.BestPaternityHistory,"+")
-                plt.grid(True)
-                plt.yticks([i+1 for i in range(self.swarmsize)])
-                plt.show()
-                decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)
-                plot_contributions(contributions,decades)
+                
+                
      
-            except : 
-                print("Plot failed")
+            except Exception as e : 
+                print("Plot failed " ,e)
             finally :
                 pass
 
