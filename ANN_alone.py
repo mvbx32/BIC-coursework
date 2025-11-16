@@ -2,7 +2,15 @@ import numpy as np
 
 class Activation:
     @staticmethod
-    def sigmoid(x): return 1 / (1 + np.exp(-x))
+    def sigmoid(x):
+        #Equivalent sigmoid expression to avoid OverFlow
+        # Source - https://stackoverflow.com/a
+        # Posted by DYZ, modified by community. See post 'Timeline' for change history
+        # Retrieved 2025-11-16, License - CC BY-SA 4.0
+        return np.where(x >= 0, 
+                        1 / (1 + np.exp(-x)), 
+                        np.exp(x) / (1 + np.exp(x)))
+
     @staticmethod
     def relu(x): return np.maximum(0, x)
     @staticmethod
