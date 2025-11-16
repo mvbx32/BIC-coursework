@@ -232,17 +232,7 @@ class PSO :
         self.score_test = MAE( Data.X_test, Data.Y_test,self.BestANN)
 
 
-        fig2, axs2 = plt.subplots(1, 1, layout='constrained')
-        axs2.set_title("Mean of the absolute value of the velocities components")
-        axs2.set_xlabel("iteration")
-        axs2.set_ylabel("Average of abs(component) across all particles")
-        axs2.plot(range(self.max_iteration_number),self.global_history ,label ="global", linewidth = 0.8)
-        axs2.plot(range(self.max_iteration_number),self.social_history ,label ="social", linewidth = 0.8)
-        axs2.plot(range(self.max_iteration_number),self.inertia_history,label ="inertial", linewidth = 0.8)
-        axs2.plot(range(self.max_iteration_number),self.local_history ,label ="loc", linewidth = 0.8)
-        plt.legend()
-        plt.plot()
-    
+        
         # -- PLOT  ------------------------------------------------------------------------------------------ 
         if self.verbose != -1 : 
             try : 
@@ -277,22 +267,30 @@ class PSO :
                     if i+1 == self.BestPaternityHistory[-1] : 
                         axe.yaxis.label.set_color('red')
                 axe.set_xlabel("iteration")
+                fig.savefig("temp/"+"Relative improvements of the SWARM")
                 fig.tight_layout()
                 
                 fig1, axs1 = plt.subplots(1, 1, layout='constrained')
                 axs1.set_title("Interparticle distances")
+                
                 axs1.set_xlabel("iteration")
                 axs1.set_ylabel("distance")
                 axs1.plot(range(self.max_iteration_number),self.MaxDistance ,label ="max", linewidth = 0.8)
                 axs1.plot(range(self.max_iteration_number),self.MinDistance ,label ="min", linewidth = 0.8)
                 axs1.plot(range(self.max_iteration_number),self.AVGDistance ,label ="average", linewidth = 0.8)
-                plt.legend()
-                plt.plot()
+        
+                fig1.savefig("temp/"+"Interparticle distances")
 
-                
-               
-            
-
+                fig2, axs2 = plt.subplots(1, 1, layout='constrained')
+                axs2.set_title("Mean of the absolute value of the velocities components")
+                axs2.set_xlabel("iteration")
+                axs2.set_ylabel("Average of abs(component) across all particles")
+                axs2.plot(range(self.max_iteration_number),self.global_history ,label ="global", linewidth = 0.8)
+                axs2.plot(range(self.max_iteration_number),self.social_history ,label ="social", linewidth = 0.8)
+                axs2.plot(range(self.max_iteration_number),self.inertia_history,label ="inertial", linewidth = 0.8)
+                axs2.plot(range(self.max_iteration_number),self.local_history ,label ="loc", linewidth = 0.8)
+                fig2.savefig("temp/"+"Mean of the absolute value of the velocities components")
+    
             
                 plt.figure()
                 plt.title("Id of the best particle")
@@ -302,11 +300,12 @@ class PSO :
                 plt.plot(self.BestPaternityHistory,"s")
                 plt.grid(True)
                 plt.yticks([i+1 for i in range(self.swarmsize)])
-                plt.show()
+                plt.savefig("temp/"+"Id of the best particle")
 
                 plt.tight_layout()
                 decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)
                 plot_contributions(contributions,decades)
+                plt.label()
                 plt.show()
                         
      

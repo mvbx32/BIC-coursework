@@ -41,7 +41,6 @@ def compute_contributions(best_particles, swarm_size, max_iteration):
     Iperiod = 0
     period = periods[Iperiod]
     for it,bestId in enumerate(best_particles):
-        print(it)
         # Identify the current period
         while  not(min(period)<=it and it < max(period)): 
             Iperiod +=1
@@ -107,7 +106,7 @@ def save_contributions_to_excel(contrib_df, best_particles, filepath):
         contrib_df.to_excel(writer, sheet_name="Contributions")
         pd.DataFrame({"Iteration": np.arange(len(best_particles)),
                       "BestParticle": best_particles}).to_excel(writer, sheet_name="BestHistory", index=False)
-    print(f"✅ Results saved to {filepath}")
+  
 
 if __name__ == "__main__":
 

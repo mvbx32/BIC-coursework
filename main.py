@@ -21,7 +21,7 @@ if __name__ == "__main__" :
 
     # -- Experiment details ----------------------------------------
     # Name of the experiment eg 
-    experiment_name = 'VanillaPSOBenchmark1'
+    experiment_name = 'DeltaTuning'
     operator = "M" # / "A" : first letter of the name of the human supervisor 
     # Description eg.
     description = 'VanillaPSO ' 
@@ -99,7 +99,7 @@ if __name__ == "__main__" :
                             informants_number, 
                             Informants, 
                             max_iteration_number = max_iteration_number, 
-                            verbose = 0) 
+                            verbose = verbose) 
                 
                 
                 # ////////////// Params to increment //////////////////////
