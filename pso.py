@@ -196,7 +196,16 @@ class PSO :
                     #self.alpha = 0.4 + (0.4-0.9)*(t-self.max_iteration_number)/self.max_iteration_number # adaptative  wmax = 0.9 , wmin = 0.4 [Sangputa]
                     # -- logs -----------------------------------------------------
                     if self.monitor : x_xi_VelComponentsMatrix = np.zeros((4,x.vector.shape[0]))
-                    
+
+                    bval , cval, dval = np.random.randn((x.vector.shape[0])),np.random.randn((x.vector.shape[0])),np.random.randn((x.vector.shape[0]))
+                    B = np.diag(bval)
+                    C = np.diag(cval)
+                    D = np.diag(dval)
+
+                    Vinert, Vloc, Vinfo, Vglob = self.alpha * vel , B@(xstar - vector) , C@(xplus - vector) , D@(xmark - vector)
+                    x.velocity =  Vinert + Vloc + Vinfo + Vglob
+
+                    """
                     for i in range(x.vector.shape[0]) : #                     [l20] 
                         b = random.random()* self.beta   #               [l21]
                         c = random.random() * self.gamma  #               [l22]
@@ -215,12 +224,15 @@ class PSO :
                             # (4,vector dimension)
                             x_xi_VelComponentsMatrix[:,i] = vels_i
                         #-------------------------------------
-
+                    """
                     # -- logs ----------------------------
                     # x_xi ... size (4, components)
                     # (4,number of components)
                   
-                    if self.monitor : particleVelMeanComponentsMatrix_t[:,j] = np.mean(x_xi_VelComponentsMatrix, axis=1 ) 
+                    if self.monitor : particleVelMeanComponentsMatrix_t[:,j] =  np.array([np.mean(abs(Vinert)),
+                                                                                          np.mean(abs(Vloc)),
+                                                                                          np.mean(abs(Vinfo)),
+                                                                                          np.mean(abs(Vglob))])#np.mean(x_xi_VelComponentsMatrix, axis=1 ) 
                     #---------------------------------------
                 
                 # -- logs ----------------------------------------
