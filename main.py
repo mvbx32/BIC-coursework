@@ -21,8 +21,9 @@ if __name__ == "__main__" :
 
     # -- Experiment details ----------------------------------------
     # Name of the experiment eg 
-    experiment_name = 'DeltaTuning'
-    operator = "M" # / "A" : first letter of the name of the human supervisor 
+
+    experiment_name = 'PlotDebug'
+    operator = "M" # / "A" : first letter of the name of the h uman supervisor 
     # Description eg.
     description = 'VanillaPSO ' 
     # Goal 
@@ -36,19 +37,25 @@ if __name__ == "__main__" :
     AssessFitness = minusMAE
     ANNStructure = [8,'input',5,"sigmoid",1,'linear']
     swarmsize = 40
-    alpha = 1 # inertia # 
-    beta  = 1 # local
-    gamma = 1 # informant
-    delta = 1 # global #when 0 : no evolution
+    alpha = 0.9 # inertia # 
+    beta  = 1.25 # local
+    gamma = 1.8 # informant
+    delta = 0.2 # global #when 0 : no evolution
     epsi  = 0.5
     informants_number = 5
-    Informants = randomParticleSet
+    Informants = k_nearest_neighboors
     max_iteration_number = 1000
     AttemptNumber = 1
 
+    w  = alpha
+    C1 = beta
+    C2 = gamma + delta
+    print((C1 + C2)/2  - 1)
+    assert(1>w and w>((C1 + C2)/2  - 1) and (C1 + C2)/2  - 1 >=0 )
+
     # ////////////// Params to increment //////////////////////
     max_iteration_numberList = [1000]
-    swarmsizeList = [5]
+    swarmsizeList = [10]
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
@@ -82,7 +89,7 @@ if __name__ == "__main__" :
                 #############################################################################
 
                 verbose = -1
-                if iter == 1000 and attempt == 0 :
+                if iter == max(max_iteration_numberList) and attempt == AttemptNumber-1 :
                     verbose = 0
 
                 if attempt in [5] : 
@@ -98,7 +105,7 @@ if __name__ == "__main__" :
                             AssessFitness, 
                             informants_number, 
                             Informants, 
-                            max_iteration_number = max_iteration_number, 
+                            max_iteration_number = iter, 
                             verbose = verbose) 
                 
                 
@@ -107,6 +114,7 @@ if __name__ == "__main__" :
                 pso.swarmsize = swarmsize
                 #  == Results ==============================================================
                 best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
+                
 
                 #___________________________________________________________________________
                 
