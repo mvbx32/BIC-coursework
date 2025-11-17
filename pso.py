@@ -197,7 +197,7 @@ class PSO :
                     # -- logs -----------------------------------------------------
                     if self.monitor : x_xi_VelComponentsMatrix = np.zeros((4,x.vector.shape[0]))
 
-                    bval , cval, dval = np.random.randn((x.vector.shape[0])),np.random.randn((x.vector.shape[0])),np.random.randn((x.vector.shape[0]))
+                    bval , cval, dval = np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0])
                     B = np.diag(bval)
                     C = np.diag(cval)
                     D = np.diag(dval)

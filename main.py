@@ -16,13 +16,94 @@ from export_tools import *
 # 1.Don't modify the existing code without permission
 # 2.Each piece of code generated has to be clearly tagged as 'AI generated' mentionning the Model used 
 
+# This function can parse the arguments from the command line.
+# It would be useful to run the training script from the command line and change
+# the hyperparameters without modifying the code.
+
+import argparse
+
+
+# ===========================
+# DEFAULT PARAMETERS
+# ===========================
+
+
+# ============= GPT 5 ================== #
+
+DEFAULTS = { 
+    "exp" : "",
+    "swarmsize": 20,
+    "alpha": 0.9,
+    "beta": 1.25,
+    "gamma": 1,
+    "delta": 1,
+    "epsi": 0.5,
+    "informants_number": 5,
+    "max_iteration_number": 100,
+    "AttemptNumber": 1,
+    "ANN": [8, "input", 5, "sigmoid", 1, "linear"],
+    "IDE": True,     # <-- default: use the parameters from code
+}
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="PSO Experiment")
+    parser.add_argument("--exp", type=str, default=DEFAULTS["exp"])
+    parser.add_argument("--swarmsize", type=int, default=DEFAULTS["swarmsize"])
+    parser.add_argument("--alpha", type=float, default=DEFAULTS["alpha"])
+    parser.add_argument("--beta", type=float, default=DEFAULTS["beta"])
+    parser.add_argument("--gamma", type=float, default=DEFAULTS["gamma"])
+    parser.add_argument("--delta", type=float, default=DEFAULTS["delta"])
+    parser.add_argument("--epsi", type=float, default=DEFAULTS["epsi"])
+    parser.add_argument("--informants_number", type=int, default=DEFAULTS["informants_number"])
+    parser.add_argument("--max_iteration_number", type=int, default=DEFAULTS["max_iteration_number"])
+    parser.add_argument("--AttemptNumber", type=int, default=DEFAULTS["AttemptNumber"])
+
+    parser.add_argument(
+        "--ANN",
+        type=str,
+        default=list(DEFAULTS["ANN"]),
+        help="ANN structure expressed as python list",
+    )
+
+    parser.add_argument(
+        "--IDE",
+        action="store_true",
+        default=DEFAULTS["IDE"],
+        help="If True, ignore CLI overrides and use in-code values",
+    )
+    return vars(parser.parse_args())
+
+def format_value(v):
+    """Convert floats to nice strings: 0.5 → 0_5"""
+    if isinstance(v, float):
+        return str(v).replace(".", "_")
+    return str(v)
+
+def build_experiment_label(params):
+    label_parts = []
+    for key, default_val in DEFAULTS.items():
+        if key == "ANN" or key == "IDE":
+            continue  # skip these
+
+        val = params[key]
+        if val != default_val:
+            label_parts.append(f"{key.capitalize()}{format_value(val)}")
+
+    if label_parts:
+        return "_".join(label_parts)
+    else:
+        return "Default"
+
+# ============= END GPT 5 ================== #
 
 if __name__ == "__main__" : 
 
     # -- Experiment details ----------------------------------------
     # Name of the experiment eg 
 
-    experiment_name = 'PlotDebug'
+    params = parse_args()
+    experiment_name = 'PlotDebug' + build_experiment_label(params)
     operator = "M" # / "A" : first letter of the name of the h uman supervisor 
     # Description eg.
     description = 'VanillaPSO ' 
@@ -31,21 +112,26 @@ if __name__ == "__main__" :
     variables_of_interest = {}
     #-- END of experiment details ----------------------------------
     print("=============",experiment_name,"======================")
+   
 
     ###################                    PSO PARAMETERS                ###########################
+
     
+    
+    ANNStructure         = params["ANN"]
+    swarmsize            = params["swarmsize"]
+    alpha                = params["alpha"]       # inertia
+    beta                 = params["beta"]        # local component
+    gamma                = params["gamma"]       # informant component
+    delta                = params["delta"]       # global component
+    epsi                 = params["epsi"]        # random exploration / mutation factor
+    informants_number    = params["informants_number"]
+
+    max_iteration_number = params["max_iteration_number"]
+    AttemptNumber        = params["AttemptNumber"]
+
     AssessFitness = minusMAE
-    ANNStructure = [8,'input',5,"sigmoid",1,'linear']
-    swarmsize = 40
-    alpha = 0.9 # inertia # 
-    beta  = 1.25 # local
-    gamma = 1.8 # informant
-    delta = 0.2 # global #when 0 : no evolution
-    epsi  = 0.5
-    informants_number = 5
     Informants = k_nearest_neighboors
-    max_iteration_number = 1000
-    AttemptNumber = 1
 
     w  = alpha
     C1 = beta
@@ -54,15 +140,15 @@ if __name__ == "__main__" :
     assert(1>w and w>((C1 + C2)/2  - 1) and (C1 + C2)/2  - 1 >=0 )
 
     # ////////////// Params to increment //////////////////////
-    max_iteration_numberList = [1000]
-    swarmsizeList = [10]
+    max_iteration_numberList = [max_iteration_number]
+    swarmsizeList = [swarmsize]
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
     root_path, results_path = create_experiment_dir(experiment_name,operator= operator)
     save_experiment_details(root_path, experiment_name, operator,
-                             "Evaluation of the impact of the number of iteration",
-                             variables_of_interest)
+                            "Evaluation of the impact of the number of iteration",
+                            variables_of_interest)
     # -----------                                                                ---------------- #
     
     pso_id = 0 
@@ -163,6 +249,8 @@ if __name__ == "__main__" :
             # == END of the attempts == #
 
         # == END of the evaluations  == #
+
+
 
 
 
