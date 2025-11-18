@@ -31,16 +31,16 @@ import argparse
 # ============= GPT 5 ================== #
 
 DEFAULTS = { 
-    "exp" : "",
-    "swarmsize": 5,
+    "exp" : "Test",
+    "swarmsize": 20,
     "alpha": 0.9,
     "beta": 1.25,
-    "gamma": 1,
+    "gamma": 1.25,
     "delta": 1,
     "epsi": 0.5,
     "informants_number": 5,
-    "max_iteration_number": 10,
-    "AttemptNumber": 3,
+    "max_iteration_number": 1000,
+    "AttemptNumber": 10,
     "ANN": [8, "input", 5, "sigmoid", 1, "linear"],
     "IDE": True,     # <-- default: use the parameters from code
 }
@@ -103,7 +103,7 @@ if __name__ == "__main__" :
     # Name of the experiment eg 
 
     params = parse_args()
-    experiment_name = 'PlotDebug' + build_experiment_label(params)
+    experiment_name = DEFAULTS["exp"] + build_experiment_label(params)
     operator = "M" # / "A" : first letter of the name of the h uman supervisor 
     # Description eg.
     description = 'VanillaPSO ' 
