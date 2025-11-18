@@ -68,7 +68,7 @@ def parse_args():
 
     parser.add_argument(
         "--IDE",
-        action="store_true",
+        type = float,
         default=DEFAULTS["IDE"],
         help="If True, ignore CLI overrides and use in-code values",
     )
@@ -117,7 +117,7 @@ if __name__ == "__main__" :
     ###################                    PSO PARAMETERS                ###########################
 
     
-    print(DEFAULTS)
+    print(params)
     ANNStructure         = params["ANN"]
     swarmsize            = params["swarmsize"]
     alpha                = params["alpha"]       # inertia
@@ -129,7 +129,9 @@ if __name__ == "__main__" :
 
     max_iteration_number = params["max_iteration_number"]
     AttemptNumber        = params["AttemptNumber"]
+    IDE                  = bool(params["IDE"])
 
+    print(IDE) 
     AssessFitness = minusMAE
     Informants = k_nearest_neighboors
 
@@ -289,18 +291,21 @@ if __name__ == "__main__" :
 
         iterations = range(max_iteration_number)
 
-        ax0.plot(iterations,PSOsBestImprovAVG, 'o', c="#008fd5", label="Average")
+        ax0.plot(iterations,PSOsBestImprovAVG, linestyle ="solid",linewidth = 0.03, c="black", label="Average") #
         ax0.fill_between(iterations,
                         np.array(PSOsBestImprovAVG)-np.array(PSOsBestImprovSTD),
                         np.array(PSOsBestImprovAVG)+np.array(PSOsBestImprovSTD),
                         color="#BBE4F8",
                         label="Standard deviation")
+        """
         for ps in range(PSO_number) : 
             line = ax0.plot(iterations,PSOsBestImprov[ps,:], '.')[0]
             ax0.plot(iterations,PSOsBestImprov[ps,:], linestyle = 'solid',linewidth = 0.3,color =  line.get_color())
+        """
+
         ax0.legend(loc="best")
         fig0.tight_layout(pad=2)
-        fig0.savefig( "Relative improvements of the Bests.png", bbox_inches='tight')
+        fig0.savefig( "z"+experiment_name + "Relative improvements of the Bests.png", bbox_inches='tight')
 
         # === 3 — Interparticle distances ===
         fig1, ax1 = plt.subplots()
@@ -313,7 +318,7 @@ if __name__ == "__main__" :
         ax1.legend(loc="best")
 
         fig1.tight_layout(pad=2)
-        fig1.savefig("Interparticle_distances.png", bbox_inches='tight')
+        fig1.savefig("z"+experiment_name + "Interparticle_distances.png", bbox_inches='tight')
 
         fig2, ax2 = plt.subplots(4,1)
 
@@ -329,7 +334,7 @@ if __name__ == "__main__" :
         ax2[c].legend(loc="best")
         fig2.tight_layout(pad=2)
         # --- SAVE IN THE EXPERIMENT FOLDER ---
-        fig2.savefig("PSOSVelocity_components.png",
+        fig2.savefig("z"+experiment_name + "PSOSVelocity_components.png",
                     bbox_inches='tight')
 
         
@@ -349,9 +354,12 @@ if __name__ == "__main__" :
             ax3.set_yticks([i+1 for i in range(swarmsize)])
 
         fig3.tight_layout(pad=2)
-        fig3.savefig("Best_particle_id.png", bbox_inches='tight')
+        fig3.savefig("z"+experiment_name+ "Best_particle_id.png", bbox_inches='tight')
 
-        plt.show()
+
+        if bool(IDE) == True :
+            print("Hi")
+            plt.show()
         # == END of the evaluations  == #
 
 
