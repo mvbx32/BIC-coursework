@@ -1,0 +1,4 @@
+Experiment Name: kNN5_SW20_Eq12Convergence
+Operator: M
+Description: Evaluation of the impact of the number of iteration
+Variables of Interest:

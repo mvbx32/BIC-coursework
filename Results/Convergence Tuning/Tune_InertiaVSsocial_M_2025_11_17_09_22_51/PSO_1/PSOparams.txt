@@ -1,0 +1,13 @@
+{
+    "ANNStructure": "[8, 'input', 5, 'sigmoid', 1, 'linear']",
+    "swarmsize": "[10]",
+    "AssessFitness": "-MAE = -( SOMME {for i in [1, Ndata]} ( |Ydata_i - ANN(X_i) |) / Ndata ) ",
+    "max_iteration_number": "[1000]",
+    "alpha": "0.9",
+    "beta": "1.25",
+    "gamma": "1",
+    "delta": "1",
+    "epsi": "0.5",
+    "Informants": "<function randomParticleSet at 0x0000018FBA7F1260>",
+    "informants_number": "5"
+}

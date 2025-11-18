@@ -1,0 +1,4 @@
+Experiment Name: TestExpSocialVSglob
+Operator: M
+Description: Evaluation of the impact of the number of iteration
+Variables of Interest:

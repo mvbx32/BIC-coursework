@@ -1,0 +1,13 @@
+{
+    "ANNStructure": "[8, 'input', 5, 'sigmoid', 1, 'linear']",
+    "swarmsize": "4",
+    "alpha": "1",
+    "beta": "1.5",
+    "gamma": "1",
+    "delta": "1",
+    "epsi": "0.1",
+    "Informants": "<function randomParticleSet at 0x0000020031C8FEC0>",
+    "informants_number": "0",
+    "AssessFitness": "<function inv_ANN_MAE at 0x0000020031C8FE20>",
+    "max_iteration_number": "100"
+}

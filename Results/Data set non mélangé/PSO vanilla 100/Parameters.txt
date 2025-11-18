@@ -1,0 +1,14 @@
+ Informants = randomParticleSet
+    AssessFitness = inv_ANN_MAE
+  
+    ANNStructure = [8,'input',5,"sigmoid",1,'linear']
+
+    swarmsize = 40
+    alpha = 1 # inertia # 
+    beta  = 1.5 # local
+    gamma = 1 # informant
+    delta = 1 # global #when 0 : no evolution
+    epsi  = 0.1  
+ 
+    max_iteration_numberList = [100]
+    swarmsizeList = [4]

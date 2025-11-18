@@ -1,0 +1,4 @@
+Experiment Name: Task3_Spread_init_100_KNN_Informants
+Operator: M
+Description: Evaluation of the impact of the number of iteration
+Variables of Interest:
