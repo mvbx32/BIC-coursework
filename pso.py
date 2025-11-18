@@ -1,5 +1,6 @@
 #==================== pso.py   ==============#
 import time
+import os
 import random 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,7 +37,7 @@ class PSO :
         AssessFitness, 
         informants_number, 
         setInformants, 
-        max_iteration_number, verbose = -1, monitor = True):
+        max_iteration_number, verbose = -1, path = '/temp/',monitor = True, show = True):
         
         
         self.ANN_structure = ANNStructure  # given by an ANN instantiation
@@ -75,19 +76,29 @@ class PSO :
         self.run_time = None
 
         # -- Stats  ---------------------------------------------------------------------------------------------------
+        
+        # ensure path ends with '/'
+        if not path.endswith("/"):
+            path = path + "/"
+            # ensure directory exists
+            os.makedirs(path, exist_ok=True)
 
+        self.path = path
+        print(path)
+        self.show = show
         self.monitor = monitor
         self.verbose = verbose
         self.interDistances_t = {}
         self.MaxDistance = []
         self.MinDistance = []
         self.AVGDistance = []
+        self.BestParticle  = []
         self.BestSolutions = []
         self.BestFitnesses = [0]
         self.BestPaternityPerDecades = { decade :[0 for _ in range(self.swarmsize) ] for decade in [10,20,50,100,1000]}
        
         self.BestPaternityHistory = []
-
+        
         self.GlobalSelfImprovementAVG = []
         self.GlobalSelfImprovementSTD= []
         self.ImprovementOfBest = [0]
@@ -158,13 +169,17 @@ class PSO :
                     x.assessFitness(self.fitnessFunc) #                              [l13]
                     if  x.fitness > self.bestFitness: # [l14]
                         BestId = x.id
+                        self.BestParticle = x.copy()
                         self.bestFitness = x.fitness
                         self.Best = x.vector.copy()#                                  [l15]
                         self.BestANN.set_params(self.Best)
                     
-                    # -- logs ----------------------------
+                        # -- logs ----------------------------
+                        
+                    #-- logs ---------------------------------
+
+                  
                     RelativeImprovements_t.append(x.improv_x)
-                    
                     # ------------------------------------
 
                 # -- logs -----------------------------------------------------------------------------
@@ -250,7 +265,7 @@ class PSO :
                     self.BestPaternityHistory.append(BestId)
                     self.BestSolutions.append(self.Best)
                     self.BestFitnesses.append(self.bestFitness)
-                    self.ImprovementOfBest.append((self.BestFitnesses[-1]  - self.BestFitnesses[-2])/(self.BestFitnesses[-1]  + self.BestFitnesses[-2]))
+                    self.ImprovementOfBest.append(self.BestParticle.improv_x)
                     self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements_t))
                     self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements_t))
                     self.globalVelMeanComponents[:,t] = np.mean(particleVelMeanComponentsMatrix_t, axis = 1)
@@ -264,9 +279,9 @@ class PSO :
             
         # -- PLOT  ------------------------------------------------------------------------------------------ 
 
-        if self.monitor : 
+        if self.show : 
             print("== Plot == ")
-            self.plot()
+            #self.plot()
             try : pass
             except Exception as e : print("Plot failed " ,e)
             finally :pass
@@ -303,7 +318,7 @@ class PSO :
 
         ax0.legend(loc="best")
         fig0.tight_layout(pad=2)
-        fig0.savefig("temp/Relative_improvements.png", bbox_inches='tight')
+        fig0.savefig(os.path.join(self.path, "Relative_improvements.png"), bbox_inches='tight')
 
         # === 2 — Each particle's relative improvements ===
         fig, axs = plt.subplots(self.swarmsize, 1, figsize=(10, 2*self.swarmsize))
@@ -325,7 +340,7 @@ class PSO :
         axs[-1].set_xlabel("iteration")
 
         fig.subplots_adjust(hspace=0.5)
-        fig.savefig("temp/Relative_improvements_particles.png", bbox_inches='tight')
+        fig.savefig(os.path.join(self.path, "Relative_improvements_particles.png"), bbox_inches='tight')
 
         # === 3 — Interparticle distances ===
         fig1, ax1 = plt.subplots()
@@ -338,7 +353,7 @@ class PSO :
         ax1.legend(loc="best")
 
         fig1.tight_layout(pad=2)
-        fig1.savefig("temp/Interparticle_distances.png", bbox_inches='tight')
+        fig1.savefig(os.path.join(self.path,"Interparticle_distances.png"), bbox_inches='tight')
 
         # === 4 — Velocities components ===
         fig2, ax2 = plt.subplots()
@@ -350,7 +365,7 @@ class PSO :
         
         ax2.legend(loc="best")
         fig2.tight_layout(pad=2)
-        fig2.savefig("temp/Velocity_components.png", bbox_inches='tight')
+        fig2.savefig(os.path.join(self.path,"Velocity_components.png"), bbox_inches='tight')
 
         # === 5 — Best particle ID ===
         fig3, ax3 = plt.subplots()
@@ -363,7 +378,7 @@ class PSO :
         ax3.set_yticks([i+1 for i in range(self.swarmsize)])
 
         fig3.tight_layout(pad=2)
-        fig3.savefig("temp/Best_particle_id.png", bbox_inches='tight')
+        fig3.savefig(os.path.join(self.path,"Best_particle_id.png"), bbox_inches='tight')
 
         
         #decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)

@@ -49,7 +49,9 @@ class Particle :
         activations = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 1 ]
 
         a = ANN(layer_sizes=layer_sizes, activations=activations)
-        self._vector = a.get_params().copy() #
+        size = a.get_params().shape #np.random.randn(size[0])
+    
+        self._vector = a.get_params().copy() 
         self._fitness = np.inf *-1
         # Instantiation of the ANN to compute the fitness
         self.ANN_model = ANN(layer_sizes=layer_sizes, activations=activations)
@@ -69,16 +71,15 @@ class Particle :
         self.informants_fitness = [self.fitness] # -1*np.inf
         self.best_informant_fitness = self.fitness # -1*np.inf
         # Remark : the fitnesses will be updated during the first Fitness Assessment (at the beginning of the PSO)
-       
+        self._Nemetouchez_pas = 'ta maman'
         # == Stats == 
 
         self.pbests = []
         self.pbests_fitness = []
-        self.improv_x = 0
+        self.improv_x = None
         self.improv_x_list = [0]
 
    
-    
     def __eq__(self, other): 
         if np.array_equal(self.vector, other.vector):
             return True 
@@ -92,6 +93,8 @@ class Particle :
         clone = Particle(self.ANN_structure)
         clone.vector =  self.vector.copy()
         clone.ANN_model = self.ANN_model.copy()
+        clone.improv_x = self.improv_x
+        clone.improv_x_list = self.improv_x_list.copy()
 
         return clone
      
@@ -116,8 +119,9 @@ class Particle :
     def fitness(self, new_fitness):  
         
         self._fitness = new_fitness
-        # before update of the best to see improvements as spikes
-        self.improv_x = (self.fitness  - self._best_fitness)/( self.fitness +self._best_fitness) 
+        if self.improv_x == None : self.improv_x = 0 ; print("Hi")
+            # before update of the best to see improvements as spikes
+        else : self.improv_x = np.abs((self.fitness  - self._best_fitness)/( self.fitness +self._best_fitness))
         self.improv_x_list.append(self.improv_x)
      
 
@@ -125,6 +129,7 @@ class Particle :
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
             self.best_x = self.vector.copy()
+            
         # x+
         # Remark : Since x belongs to the informants, 
         # so x is better than the best informants implies x is the best informants

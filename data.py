@@ -35,7 +35,7 @@ class Data :
     
     X = data[:, :-1]
     y = data[:, -1]
-
+    print(np.max(y))
     X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.30, random_state=42, shuffle=True)
                 
 
