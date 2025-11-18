@@ -94,7 +94,7 @@ class PSO :
         self.AVGDistance = []
         self.BestParticle  = []
         self.BestSolutions = []
-        self.BestFitnesses = [0]
+        self.BestFitnesses = []
         self.BestPaternityPerDecades = { decade :[0 for _ in range(self.swarmsize) ] for decade in [10,20,50,100,1000]}
        
         self.BestPaternityHistory = []
@@ -148,6 +148,7 @@ class PSO :
         self.P = []                                                             #[l7]
         for loop in range(self.swarmsize):                                      #[l8]
             p = Particle(self.ANN_structure)
+            p.velocity = np.random.random()
             self.P.append(p)                                                    #[l9] # new random particle  
 
         t0 = time.time()
@@ -165,12 +166,19 @@ class PSO :
 
                 RelativeImprovements_t = []
                 for x in self.P :               #                                      [l12]
-                    
+                    """
+                    if x.life_expectancy <= 0 and x.vector not in self.BestParticle.informants : 
+                        id = x.id
+                        x = Particle(self.ANN_structure)
+                        x.id = id
+                        print('Reborn')
+                    """
                     x.assessFitness(self.fitnessFunc) #                              [l13]
                     if  x.fitness > self.bestFitness: # [l14]
                         BestId = x.id
                         self.BestParticle = x.copy()
                         self.bestFitness = x.fitness
+                        
                         self.Best = x.vector.copy()#                                  [l15]
                         self.BestANN.set_params(self.Best)
                     
@@ -192,9 +200,9 @@ class PSO :
 
                 # == Determination of each velocities == 
                 for j,x in enumerate(self.P) : # [l16]
-                    vel = x.velocity.copy()
+                    vel = x.velocity
                     vector = x.vector.copy()
-                    new_vel =  x.velocity.copy()
+                    new_vel =  x.velocity
 
                     # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
                     xstar = x.best_x         #               [l17]
@@ -213,9 +221,25 @@ class PSO :
                     if self.monitor : x_xi_VelComponentsMatrix = np.zeros((4,x.vector.shape[0]))
 
                     bval , cval, dval = np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0])
-                    B = np.diag(bval)
-                    C = np.diag(cval)
-                    D = np.diag(dval)
+                    
+                    
+                    
+                    
+                
+                    B = np.diag(bval)*self.beta
+                    C = np.diag(cval)*self.gamma
+                    D = np.diag(dval)*self.delta
+
+                    mu = 0.1
+                    self.beta = 1.75
+                    self.gamma = 1.75
+                    self.delta = 0.5
+                    assert(mu>=0 and mu<= 1 )
+                    Omega1, Omega2 = self.beta, self.gamma + self.delta
+                    Omega = Omega1 + Omega2
+                    assert(Omega1 + Omega2 >=4)
+
+                    X = 2*mu /np.abs(2 - Omega - np.sqrt(Omega*(Omega-4)) )
 
                     Vinert, Vloc, Vinfo, Vglob = self.alpha * vel , B@(xstar - vector) , C@(xplus - vector) , D@(xmark - vector)
                     x.velocity =  Vinert + Vloc + Vinfo + Vglob
