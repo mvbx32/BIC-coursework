@@ -117,7 +117,7 @@ if __name__ == "__main__" :
     ###################                    PSO PARAMETERS                ###########################
 
     
-    
+    print(DEFAULTS)
     ANNStructure         = params["ANN"]
     swarmsize            = params["swarmsize"]
     alpha                = params["alpha"]       # inertia
