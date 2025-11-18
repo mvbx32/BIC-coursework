@@ -119,7 +119,7 @@ class Particle :
     def fitness(self, new_fitness):  
         
         self._fitness = new_fitness
-        if self.improv_x == None : self.improv_x = 0 ; print("Hi")
+        if self.improv_x == None : self.improv_x = 0 ; 
             # before update of the best to see improvements as spikes
         else : self.improv_x = np.abs((self.fitness  - self._best_fitness)/( self.fitness +self._best_fitness))
         self.improv_x_list.append(self.improv_x)
@@ -129,7 +129,7 @@ class Particle :
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
             self.best_x = self.vector.copy()
-            
+
         # x+
         # Remark : Since x belongs to the informants, 
         # so x is better than the best informants implies x is the best informants

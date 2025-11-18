@@ -136,7 +136,7 @@ if __name__ == "__main__" :
     w  = alpha
     C1 = beta
     C2 = gamma + delta
-    print((C1 + C2)/2  - 1)
+    #print((C1 + C2)/2  - 1)
     assert(1>w and w>((C1 + C2)/2  - 1) and (C1 + C2)/2  - 1 >=0 )
 
     # ////////////// Params to increment //////////////////////
@@ -263,7 +263,7 @@ if __name__ == "__main__" :
                 row_data_str = [str(data) for data in row_data if (type(data)!= float) or (type(data)!= int)]
                 
                 append_results_to_excel(results_path, row_data)
-                print(s + ai, step)
+               
                 step +=1
                 # == END of the attempts == #
 
