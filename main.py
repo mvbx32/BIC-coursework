@@ -27,7 +27,7 @@ import argparse
 # ============= GPT 5 ================== #
 
 DEFAULTS = { 
-    "exp" : "TestNPY",
+    "exp" : "Test",
     "swarmsize": 20,
     "alpha": 0.9,
     "beta": 1.25,
@@ -179,14 +179,15 @@ if __name__ == "__main__" :
     max_iteration_numberList = [max_iteration_number]
     swarmsizeList = [swarmsize]
 
-    paramsList = [delta]
+    paramsList = [10,100,200]
+
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
     now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     experiment_name = f"{experiment_name.replace(' ', '_')}_{operator}_{now}"
     exp_path = os.path.join(path,"experiments",experiment_name)
-  
+    print()
 
     print(exp_path)
     root_path, results_path = create_experiment_dir(experiment_name,operator= operator)
@@ -216,6 +217,7 @@ if __name__ == "__main__" :
     PSOsBestsId = [] #np.zeros((PSO_number,iter))
 
     step = 0
+    t0 = time.time()
     for s, param2change in enumerate(paramsList) : 
         
         # --  Monitoring ------------------------------------------------------
@@ -237,6 +239,7 @@ if __name__ == "__main__" :
 
             #############################################################################
 
+            
             verbose = -1
             if  attempt == AttemptNumber-1 :
                 verbose = 0
@@ -257,8 +260,8 @@ if __name__ == "__main__" :
             
             # ////////////// Params to increment //////////////////////
             pso.max_iteration_number= max_iteration_number
-            pso.swarmsize = swarmsize
-            pso.delta = param2change
+           
+            Particle.life_expectancy = param2change
             #  == Results ==============================================================
             best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
             
@@ -294,7 +297,7 @@ if __name__ == "__main__" :
 
             fitness_avg, score_train_avg,score_train_std,score_test_avg, score_test_std, time_avg =np.mean(Fitness), np.mean(Train),np.std(Train),np.mean(Test),np.std(Test),np.mean(Time)
             print(fitness_avg, score_train_avg,score_train_std,score_test_avg, score_test_std, time_avg)
-            
+            print("Chrono",time.time() - t0)
             PSOsGlobalVelMeanComponents[:,:,step] = pso.globalVelMeanComponents.copy()
             PSOsGLobalDistance[:,:,step]  = np.array([pso.MinDistance, pso.AVGDistance, pso.MaxDistance])
             PSOsBestsId.append(pso.BestPaternityHistory)

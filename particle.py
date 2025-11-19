@@ -23,6 +23,7 @@ class Particle :
     # ==   ANN     == 
 
     particleNumber = 0
+    life_expectancy = 200
 
     def reset():
         # WARNING : reset the Particle class between two consecutives PSO executions
@@ -77,7 +78,7 @@ class Particle :
         self.pbests_fitness = []
         self.improv_x = None
         self.improv_x_list = [0]
-        self.life_expectancy = 50
+        self.life_expectancy = Particle.life_expectancy
 
    
     def __eq__(self, other): 
@@ -128,7 +129,7 @@ class Particle :
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
             self.best_x = self.vector.copy()
-            self.life_expectancy +=1
+            self.life_expectancy = Particle.life_expectancy
 
         # x+
         # Remark : Since x belongs to the informants, 

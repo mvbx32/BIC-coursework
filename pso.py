@@ -148,7 +148,7 @@ class PSO :
         self.P = []                                                             #[l7]
         for loop in range(self.swarmsize):                                      #[l8]
             p = Particle(self.ANN_structure)
-            p.velocity = np.random.random()
+            p.velocity = np.random.uniform(0,1, p.vector.shape[0])
             self.P.append(p)                                                    #[l9] # new random particle  
 
         t0 = time.time()
@@ -166,13 +166,7 @@ class PSO :
 
                 RelativeImprovements_t = []
                 for x in self.P :               #                                      [l12]
-                    """
-                    if x.life_expectancy <= 0 and x.vector not in self.BestParticle.informants : 
-                        id = x.id
-                        x = Particle(self.ANN_structure)
-                        x.id = id
-                        print('Reborn')
-                    """
+                    
                     x.assessFitness(self.fitnessFunc) #                              [l13]
                     if  x.fitness > self.bestFitness: # [l14]
                         BestId = x.id
@@ -273,7 +267,15 @@ class PSO :
                 for x in self.P : #                                      [l25]
                     vector = x.vector.copy()
                     x.vector +=  (self.epsilon*x.velocity) #      [l26]
-                
+                    if (x.vector != self.Best).all() and x.life_expectancy <= 0 : 
+                        id = x.id
+                        self.P.remove(x)
+                        x_new = Particle(self.ANN_structure)
+                        x_new.id = id
+                        x_new.velocity = np.random.uniform(0,1,x_new.vector.shape)
+                        self.P.append(x_new)
+
+                        
                 #if Particle.best_fitness > criteria : break # [l27]    
 
                 # -- logs ----------------------------
@@ -282,6 +284,7 @@ class PSO :
                     self.BestSolutions.append(self.Best)
                     self.BestFitnesses.append(self.bestFitness)
                     self.ImprovementOfBest.append(self.BestParticle.improv_x)
+
                     self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements_t))
                     self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements_t))
                     self.globalVelMeanComponents[:,t] = np.mean(particleVelMeanComponentsMatrix_t, axis = 1)
@@ -298,6 +301,7 @@ class PSO :
         if self.show : 
             print("== Plot == ")
             #self.plot()
+
             try : pass
             except Exception as e : print("Plot failed " ,e)
             finally :pass
