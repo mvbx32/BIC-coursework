@@ -13,21 +13,21 @@ class Random :
     #https://numpy.org/doc/stable/reference/random/generated/numpy.random.uniform.html
     pass
 
-def random( size = None , low = Random.low , high = Random.high, func = Random.func):
-    """
-    None size -> return a single float 
+def randomFunc( size = None , low = Random.low , high = Random.high, func = Random.func):
+        """
+        None size -> return a single float 
 
-    np.random.randn(n_input, n_output) # Normal Standard 
-        params = (n_input, n_output)
+        np.random.randn(n_input, n_output) # Normal Standard 
+            params = (n_input, n_output)
 
-    np.random.uniform(low, high, size)
-        params = (low, high, size) = (low, high, (nrow,ncol))
-    """
-    if func == np.random.randn : 
-        return np.random.randn(size)
-    elif func == np.random.uniform : 
-        return  np.random.uniform(low, high,size)
-    pass
+        np.random.uniform(low, high, size)
+            params = (low, high, size) = (low, high, (nrow,ncol))
+        """
+        if func == np.random.randn : 
+            return np.random.randn(size)
+        elif func == np.random.uniform : 
+            return  np.random.uniform(low, high,size)
+        pass
         
 # == Parameters control == 
 

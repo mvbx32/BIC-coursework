@@ -148,7 +148,7 @@ class PSO :
         self.P = []                                                             #[l7]
         for loop in range(self.swarmsize):                                      #[l8]
             p = Particle(self.ANN_structure)
-            p.velocity = np.random.uniform(-1,1, x.vector.shape[0])
+            p.velocity = np.random.randn( p.vector.shape[0])
             self.P.append(p)                                                    #[l9] # new random particle  
 
         t0 = time.time()
@@ -220,7 +220,7 @@ class PSO :
                     # -- logs -----------------------------------------------------
                     if self.monitor : x_xi_VelComponentsMatrix = np.zeros((4,x.vector.shape[0]))
 
-                    bval , cval, dval = np.random.uniform(-1,1,size = x.vector.shape[0]), np.random.uniform(-1,1,size = x.vector.shape[0]), np.random.uniform(-1,1,size = x.vector.shape[0])
+                    bval , cval, dval = np.random.randn(x.vector.shape[0]), np.random.randn(x.vector.shape[0]), np.random.randn(x.vector.shape[0])
                     
                     
                     
@@ -415,7 +415,7 @@ if __name__ == "__main__" :
     from data import Data 
     
     np.random.seed(42)
-    random.seed(42)
+   
     # %% Example 1 
     # Issue : the result doesnot evolve with the change of max_iter when swarmsize = 1
     Informants = randomParticleSet
@@ -438,7 +438,7 @@ if __name__ == "__main__" :
 
     if True : 
         np.random.seed(42)
-        random.seed(42)
+        
         t0 = time.time()
         pso = PSO(swarmsize, 
             alpha, 
@@ -457,7 +457,7 @@ if __name__ == "__main__" :
         
     if True : 
         np.random.seed(42)
-        random.seed(42)
+        
         t0 = time.time()
         pso.max_iteration_number = 30
         pso = PSO(swarmsize, 
