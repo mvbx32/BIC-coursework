@@ -148,7 +148,7 @@ class PSO :
         self.P = []                                                             #[l7]
         for loop in range(self.swarmsize):                                      #[l8]
             p = Particle(self.ANN_structure)
-            p.velocity = np.random.random()
+            p.velocity = np.random.uniform(-1,1, x.vector.shape[0])
             self.P.append(p)                                                    #[l9] # new random particle  
 
         t0 = time.time()
@@ -220,7 +220,7 @@ class PSO :
                     # -- logs -----------------------------------------------------
                     if self.monitor : x_xi_VelComponentsMatrix = np.zeros((4,x.vector.shape[0]))
 
-                    bval , cval, dval = np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0])
+                    bval , cval, dval = np.random.uniform(-1,1,size = x.vector.shape[0]), np.random.uniform(-1,1,size = x.vector.shape[0]), np.random.uniform(-1,1,size = x.vector.shape[0])
                     
                     
                     

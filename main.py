@@ -35,7 +35,7 @@ DEFAULTS = {
     "delta": 1,
     "epsi": 0.5,
     "informants_number": 5,
-    "max_iteration_number": 1000,
+    "max_iteration_number": 1,
     "AttemptNumber": 10,
     "ANN": [8, "input", 10, "sigmoid", 1, "linear"],
     "IDE": True,     # <-- default: use the parameters from code

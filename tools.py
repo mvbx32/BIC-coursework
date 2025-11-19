@@ -6,6 +6,29 @@ from data import Data
 
 #TODO : define a doctring, collect it with function.__doc__  and  save the formulas in a text file
 
+class Random : 
+    func = np.random.uniform
+    low , high = 0,1
+    #https://numpy.org/doc/stable/reference/random/generated/numpy.random.randn.html
+    #https://numpy.org/doc/stable/reference/random/generated/numpy.random.uniform.html
+    pass
+
+def random( size = None , low = Random.low , high = Random.high, func = Random.func):
+    """
+    None size -> return a single float 
+
+    np.random.randn(n_input, n_output) # Normal Standard 
+        params = (n_input, n_output)
+
+    np.random.uniform(low, high, size)
+        params = (low, high, size) = (low, high, (nrow,ncol))
+    """
+    if func == np.random.randn : 
+        return np.random.randn(size)
+    elif func == np.random.uniform : 
+        return  np.random.uniform(low, high,size)
+    pass
+        
 # == Parameters control == 
 
 
