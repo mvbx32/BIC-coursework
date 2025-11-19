@@ -28,17 +28,18 @@ import argparse
 
 DEFAULTS = { 
     "exp" : "TestNPY",
-    "swarmsize": 10,
+    "swarmsize": 20,
     "alpha": 0.9,
     "beta": 1.25,
     "gamma": 1.25,
     "delta": 1,
     "epsi": 0.5,
     "informants_number": 5,
-    "max_iteration_number": 100,
-    "AttemptNumber": 2,
+    "max_iteration_number": 1000,
+    "AttemptNumber": 10,
     "ANN": [8, "input", 10, "sigmoid", 1, "linear"],
     "IDE": True,     # <-- default: use the parameters from code
+    "path": ""
 }
 
 
@@ -54,6 +55,7 @@ def parse_args():
     parser.add_argument("--informants_number", type=int, default=DEFAULTS["informants_number"])
     parser.add_argument("--max_iteration_number", type=int, default=DEFAULTS["max_iteration_number"])
     parser.add_argument("--AttemptNumber", type=int, default=DEFAULTS["AttemptNumber"])
+    parser.add_argument("--path", type=str, default=DEFAULTS["path"])
 
     parser.add_argument(
         "--ANN",
@@ -162,6 +164,7 @@ if __name__ == "__main__" :
     AttemptNumber        = params["AttemptNumber"]
     IDE                  = bool(params["IDE"])
 
+    path                  =  params["path"]
     print(IDE) 
     AssessFitness = minusMAE
     Informants = k_nearest_neighboors
@@ -176,13 +179,13 @@ if __name__ == "__main__" :
     max_iteration_numberList = [max_iteration_number]
     swarmsizeList = [swarmsize]
 
-    paramsList = [1,0.5,0.25,0.1]
+    paramsList = [delta]
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
     now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     experiment_name = f"{experiment_name.replace(' ', '_')}_{operator}_{now}"
-    exp_path = os.path.join("experiments",experiment_name)
+    exp_path = os.path.join(path,"experiments",experiment_name)
   
 
     print(exp_path)

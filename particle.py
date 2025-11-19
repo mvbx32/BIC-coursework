@@ -71,13 +71,13 @@ class Particle :
         self.informants_fitness = [self.fitness] # -1*np.inf
         self.best_informant_fitness = self.fitness # -1*np.inf
         # Remark : the fitnesses will be updated during the first Fitness Assessment (at the beginning of the PSO)
-        self._Nemetouchez_pas = 'ta maman'
         # == Stats == 
 
         self.pbests = []
         self.pbests_fitness = []
         self.improv_x = None
         self.improv_x_list = [0]
+        self.life_expectancy = 50
 
    
     def __eq__(self, other): 
@@ -123,12 +123,12 @@ class Particle :
             # before update of the best to see improvements as spikes
         else : self.improv_x = np.abs((self.fitness  - self._best_fitness)/( self.fitness +self._best_fitness))
         self.improv_x_list.append(self.improv_x)
-     
 
         # x*
         if self._best_fitness < new_fitness : 
             self._best_fitness =  new_fitness 
             self.best_x = self.vector.copy()
+            self.life_expectancy +=1
 
         # x+
         # Remark : Since x belongs to the informants, 
@@ -139,7 +139,8 @@ class Particle :
 
         self.pbests.append(self.best_x) # 
         self.pbests_fitness.append(self._best_fitness)
-      
+
+        self.life_expectancy -= 1 
 
     def assessFitness(self,fitnessFunc):
         self.fitness= fitnessFunc(self)

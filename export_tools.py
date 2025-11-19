@@ -13,9 +13,8 @@ def create_experiment_dir(experiment_name, operator):
     Returns the absolute path of the experiment folder and results file.
     """
     # timestamp
-    now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    root_name = f"{experiment_name.replace(' ', '_')}_{operator}_{now}"
-    root_path = os.path.join("experiments", root_name)
+    
+    root_path = os.path.join("experiments", experiment_name)
     os.makedirs(root_path, exist_ok=True)
 
     # create results file if it doesn't exist
