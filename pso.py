@@ -283,7 +283,7 @@ class PSO :
                     self.BestPaternityHistory.append(BestId)
                     self.BestSolutions.append(self.Best)
                     self.BestFitnesses.append(self.bestFitness)
-                    self.ImprovementOfBest.append(self.BestParticle.improv_x)
+                    self.ImprovementOfBest.append( (self.BestFitnesses[-1] - self.BestFitnesses[-2])/abs(self.BestFitnesses[-1] + self.BestFitnesses[-2 ]) if len(self.BestFitnesses)>=2 and abs(self.BestFitnesses[-1] + self.BestFitnesses[-2 ]) !=0 else 0 )
 
                     self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements_t))
                     self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements_t))
