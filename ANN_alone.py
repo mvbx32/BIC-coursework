@@ -40,7 +40,7 @@ class Layer:
         self.W = np.random.uniform(-1,1,(n_input, n_output)) # “standard normal” distribution
         self.b = np.random.uniform(-1,1,n_output)
         self.activationId= activation
-        self.activation = getattr(Activation, activat ion)
+        self.activation = getattr(Activation, activation)
 
     def __eq__(self, value): 
 

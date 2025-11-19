@@ -13,7 +13,7 @@ class Random :
     #https://numpy.org/doc/stable/reference/random/generated/numpy.random.uniform.html
     pass
 
-def random( size = None , low = Random.low , high = Random.high, func = Random.func):
+def randomFunc( size = None , low = Random.low , high = Random.high, func = Random.func):
     """
     None size -> return a single float 
 
