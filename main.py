@@ -28,15 +28,15 @@ import argparse
 
 DEFAULTS = { 
     "exp" : "TestNPY",
-    "swarmsize": 20,
+    "swarmsize": 10,
     "alpha": 0.9,
     "beta": 1.25,
     "gamma": 1.25,
     "delta": 1,
     "epsi": 0.5,
     "informants_number": 5,
-    "max_iteration_number": 1,
-    "AttemptNumber": 10,
+    "max_iteration_number": 100,
+    "AttemptNumber": 2,
     "ANN": [8, "input", 10, "sigmoid", 1, "linear"],
     "IDE": True,     # <-- default: use the parameters from code
 }
@@ -93,6 +93,41 @@ def build_experiment_label(params):
 
 # ============= END GPT 5 ================== #
 
+
+plt.rcParams["figure.figsize"] = (10, 6)
+plt.rcParams["figure.dpi"] = 120
+plt.rcParams["savefig.dpi"] = 150
+
+
+# === 0 — Best fitnesses ===
+fig0, ax0 = plt.subplots()
+ax0.set_title("SWARM best fitness")
+#ax0.set_ylim([-0.5, 0.5])
+ax0.set_xlabel("iteration")
+ax0.set_ylabel("fitness")
+
+figim, axim = plt.subplots()
+axim.set_title("Relative improvement of the Best")
+#ax0.set_ylim([-0.5, 0.5])
+axim.set_xlabel("iteration")
+axim.set_ylabel("relative improvement")
+
+fig1, ax1 = plt.subplots()
+ax1.set_title("Interparticle average distance")
+ax1.set_xlabel("iteration")
+ax1.set_ylabel("distance")
+
+fig2, ax2 = plt.subplots(4,1)
+
+"""
+fig3, ax3 = plt.subplots()
+ax3.set_title("Id of the best particle")
+ax3.set_ylim([0, swarmsize + 1])
+ax3.set_xlabel("iteration")
+ax3.set_ylabel("id")
+
+"""
+
 if __name__ == "__main__" : 
 
     # -- Experiment details ----------------------------------------
@@ -141,7 +176,7 @@ if __name__ == "__main__" :
     max_iteration_numberList = [max_iteration_number]
     swarmsizeList = [swarmsize]
 
-    paramsList = swarmsizeList
+    paramsList = [1,0.5,0.25,0.1]
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
@@ -165,6 +200,7 @@ if __name__ == "__main__" :
 
     pso_id = 0 
 
+   
 
 
 
@@ -219,6 +255,7 @@ if __name__ == "__main__" :
             # ////////////// Params to increment //////////////////////
             pso.max_iteration_number= max_iteration_number
             pso.swarmsize = swarmsize
+            pso.delta = param2change
             #  == Results ==============================================================
             best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
             
@@ -260,6 +297,8 @@ if __name__ == "__main__" :
             PSOsBestsId.append(pso.BestPaternityHistory)
             PSOsBestImprov[step,:] = pso.ImprovementOfBest[1:]
             PSOsBestFitnesses[step,:] = pso.BestFitnesses
+
+         
             # --  Export        ----------------------------------------------------------------------------------------- #
             
             row_data = [pso_id,fitness_avg, 
@@ -272,7 +311,7 @@ if __name__ == "__main__" :
                         run_time,
                         pso.swarmsize,
                         pso.informants_number,
-                        alpha,beta,gamma,delta,epsi,
+                        pso.alpha,pso.beta,pso.gamma,pso.delta,pso.epsilon,
                         str(pso.ANN_structure).replace('[','').replace(']','').replace(',',' ')]
             row_data_str = [str(data) for data in row_data if (type(data)!= float) or (type(data)!= int)]
             
@@ -280,124 +319,110 @@ if __name__ == "__main__" :
             
             step +=1
             # == END of the attempts == #
-  
+
+        PSOsGlobalVelMeanComponentsAVG = np.mean(PSOsGlobalVelMeanComponents[:,:,s:s+AttemptNumber], axis = 2) # (compo, time, param1[attempt1, ..., attempt10] ... paramN[..] ) 
+        PSOsGlobalVelMeanComponentsMAX = np.max(PSOsGlobalVelMeanComponents[:,:,s:s+AttemptNumber], axis = 2)
+        PSOsGlobalVelMeanComponentsMIN = np.min(PSOsGlobalVelMeanComponents[:,:,s:s+AttemptNumber], axis = 2)
+
+        PSOsBestFitnessesAVG = np.mean(PSOsBestFitnesses[s:s+AttemptNumber,:],axis = 0)
+        PSOsBestFitnessesSTD = np.std(PSOsBestFitnesses[s:s+AttemptNumber,:],axis = 0)
+
+        PSOsBestImprovAVG = np.mean(PSOsBestImprov[s:s+AttemptNumber,:],axis = 0)
+        PSOsBestImprovSTD = np.std(PSOsBestImprov[s:s+AttemptNumber,:],axis = 0)
+        iterations = range(max_iteration_number)
+        ax0.plot(iterations,PSOsBestFitnessesAVG, linestyle ="solid", label=str(param2change) if len(paramsList)>0 else "") #
+
+
+        axim.plot(iterations,PSOsBestImprovAVG, linestyle ="solid", label=str(param2change) if len(paramsList)>0 else "") #
+        """
+        axim.fill_between(iterations,
+            np.array(PSOsBestImprovAVG)-np.array(PSOsBestImprovSTD),
+            np.array(PSOsBestImprovAVG)+np.array(PSOsBestImprovSTD),
+            color="#BBE4F8",
+            label="Standard deviation")
+
+        """
+        
+
+        #ax1.plot(range(max_iteration_number),np.max(PSOsGLobalDistance, axis = 2)[2,:] , label="max", linewidth= 0.8)
+        ax1.plot(range(max_iteration_number),np.mean(PSOsGLobalDistance[:,:,s:s+AttemptNumber], axis = 2)[1,:], label=str(param2change) if len(paramsList)>0 else "", linewidth= 0.8) ; 
+        #ax1.plot(range(max_iteration_number),np.min(PSOsGLobalDistance, axis = 2)[0,:], label="min", linewidth= 0.8)
+
+        for c, component in enumerate(["inertial","local","social","global" ]) :
+            ax2[c].title.set_fontsize(0.25 + 2)
+            ax2[c].xaxis.label.set_fontsize(0.25)
+            ax2[c].yaxis.label.set_fontsize(0.25)
+            ax2[c].set_title("mean(|{} velocity|)".format(component))
+            ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsAVG[c,:], label=str(param2change) if len(paramsList)>0 else "", linewidth=0.8)
+            #ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsMIN[c,:], label="MIN", linewidth=0.8)
+            #ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsMAX[c,:], label="MAX", linewidth=0.8)
+
+        """for ps in range(PSO_number):
+            line = ax3.plot(range(max_iteration_number),PSOsBestsId[ps], "s")
+            #ax3.plot(range(iter),PSOsBestsId[ps], linestyle ="solid", linewidth = 0.8, c = line[0].get_color())
+            ax3.grid(True)
+            ax3.set_yticks([i+1 for i in range(swarmsize)])
+        """
+        try : pass
+            
+            
+            
+        except Exception as e : 
+            print("plot failed {}".format(e))
  
 
 with open(os.path.join(root_path,"params.txt"),"w") as f : f.write("Params" +  str(paramsList) + "\n" + "Attempts " + str(AttemptNumber))
-np.save(os.path.join(root_path,"{}PSOsGlobalVelMeanComponents".format(len(paramsList) if len(paramsList) else "" ) ), PSOsGlobalVelMeanComponents , allow_pickle=True)
-np.save(os.path.join(root_path,"{}PSOsGLobalDistance".format(len(paramsList) if len(paramsList) else "" ) ), PSOsGLobalDistance , allow_pickle=True)   
-np.save(os.path.join(root_path,"{}PSOsBestFitnesses".format(len(paramsList) if len(paramsList) else "" ) ), PSOsBestFitnesses , allow_pickle=True)   
-np.save(os.path.join(root_path,"{}PSOsBestImprov".format(len(paramsList) if len(paramsList) else "" ) ), PSOsBestImprov , allow_pickle=True)  
+np.save(os.path.join(root_path,"{}PSOsGlobalVelMeanComponents".format(len(paramsList) if len(paramsList)>1 else "" ) ), PSOsGlobalVelMeanComponents , allow_pickle=True)
+np.save(os.path.join(root_path,"{}PSOsGLobalDistance".format(len(paramsList) if len(paramsList)>1 else "" ) ), PSOsGLobalDistance , allow_pickle=True)   
+np.save(os.path.join(root_path,"{}PSOsBestFitnesses".format(len(paramsList) if len(paramsList)>1 else "" ) ), PSOsBestFitnesses , allow_pickle=True)   
+np.save(os.path.join(root_path,"{}PSOsBestImprov".format(len(paramsList) if len(paramsList)>1 else "" ) ), PSOsBestImprov , allow_pickle=True)  
+np.save(os.path.join(root_path,"{}PSOsBestImprov".format(len(paramsList) if len(paramsList)>1 else "" ) ), PSOsBestImprov , allow_pickle=True)  
 
  
-PSOsGlobalVelMeanComponentsAVG = np.mean(PSOsGlobalVelMeanComponents, axis = 2)
-PSOsGlobalVelMeanComponentsMAX = np.max(PSOsGlobalVelMeanComponents, axis = 2)
-PSOsGlobalVelMeanComponentsMIN = np.min(PSOsGlobalVelMeanComponents, axis = 2)
-
-PSOsBestFitnessesAVG = np.mean(PSOsBestFitnesses,axis = 0)
-PSOsBestFitnessesSTD = np.std(PSOsBestFitnesses,axis = 0)
-
-PSOsBestImprovAVG = np.mean(PSOsBestImprov,axis = 0)
-PSOsBestImprovSTD = np.std(PSOsBestImprov,axis = 0)
-
-plt.rcParams["figure.figsize"] = (10, 6)
-plt.rcParams["figure.dpi"] = 120
-plt.rcParams["savefig.dpi"] = 150
-
-
-# === 0 — Best fitnesses ===
-fig0, ax0 = plt.subplots()
-ax0.set_title("Average of the best fitnesses")
-#ax0.set_ylim([-0.5, 0.5])
-ax0.set_xlabel("iteration")
-ax0.set_ylabel("Best Fitness")
-
-iterations = range(max_iteration_number)
-
-ax0.plot(iterations,PSOsBestFitnessesAVG, linestyle ="solid",linewidth = 0.3, c="black", label="Average") #
-
-ax0.legend(loc="best")
-fig0.tight_layout(pad=2)
-fig0.savefig( os.path.join(root_path, "Average of the best fitnesses.png"), bbox_inches='tight')
-# === 1 — Relative improvements of the SWARM ===
-fig0, ax0 = plt.subplots()
-ax0.set_title("Relative improvements of the Bests")
-#ax0.set_ylim([-0.5, 0.5])
-ax0.set_xlabel("iteration")
-ax0.set_ylabel("relative improvement")
-
-iterations = range(max_iteration_number)
-
-ax0.plot(iterations,PSOsBestImprovAVG, linestyle ="solid",linewidth = 0.3, c="black", label="Average") #
-ax0.fill_between(iterations,
-                np.array(PSOsBestImprovAVG)-np.array(PSOsBestImprovSTD),
-                np.array(PSOsBestImprovAVG)+np.array(PSOsBestImprovSTD),
-                color="#BBE4F8",
-                label="Standard deviation")
-"""
-for ps in range(PSO_number) : 
-    line = ax0.plot(iterations,PSOsBestImprov[ps,:], '.')[0]
-    ax0.plot(iterations,PSOsBestImprov[ps,:], linestyle = 'solid',linewidth = 0.3,color =  line.get_color())
-"""
-
-ax0.legend(loc="best")
-fig0.tight_layout(pad=2)
-fig0.savefig( os.path.join(root_path, "Relative improvements of the Bests.png"), bbox_inches='tight')
-
-# === 3 — Interparticle distances ===
-fig1, ax1 = plt.subplots()
-ax1.set_title("Interparticle distances")
-ax1.set_xlabel("iteration")
-ax1.set_ylabel("distance")
-ax1.plot(range(max_iteration_number),np.max(PSOsGLobalDistance, axis = 2)[2,:] , label="max", linewidth= 0.8)
-ax1.plot(range(max_iteration_number),np.mean(PSOsGLobalDistance, axis = 2)[0,:], label="average", linewidth= 0.8)
-ax1.plot(range(max_iteration_number),np.min(PSOsGLobalDistance, axis = 2)[0,:], label="min", linewidth= 0.8)
-ax1.legend(loc="best")
-
-fig1.tight_layout(pad=2)
-fig1.savefig(os.path.join(root_path,"Interparticle_distances.png"), bbox_inches='tight')
-
-fig2, ax2 = plt.subplots(4,1)
-
-for c, component in enumerate(["inertial","local","social","global" ]) :
-    ax2[c].title.set_fontsize(0.25 + 2)
-    ax2[c].xaxis.label.set_fontsize(0.25)
-    ax2[c].yaxis.label.set_fontsize(0.25)
-    ax2[c].set_title("Mean(|{} velocity |)".format(component))
-    ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsAVG[c,:], label="MEAN", linewidth=0.8)
-    ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsMIN[c,:], label="MIN", linewidth=0.8)
-    ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsMAX[c,:], label="MAX", linewidth=0.8)
-ax2[c].set_xlabel("iteration")
-ax2[c].legend(loc="best")
-fig2.tight_layout(pad=2)
-# --- SAVE IN THE EXPERIMENT FOLDER ---
-fig2.savefig(os.path.join(root_path,"PSOSVelocity_components.png"),
-            bbox_inches='tight')
 
 
 
 
-# === 5 — Best particle ID ===
-fig3, ax3 = plt.subplots()
-ax3.set_title("Id of the best particle")
-ax3.set_ylim([0, swarmsize + 1])
-ax3.set_xlabel("iteration")
-ax3.set_ylabel("id")
+try : 
+    
+    if len(paramsList)> 0 : 
+        ax0.legend(loc="best")
+        ax1.legend(loc="best")
+        ax2[c].legend(loc="best")
+    fig0.tight_layout(pad=2)
+    fig0.savefig( os.path.join(root_path, "Average of the best fitnesses.png"), bbox_inches='tight')
+    # === 1 — Relative improvements of the SWARM ===
 
-for ps in range(PSO_number):
-    line = ax3.plot(range(max_iteration_number),PSOsBestsId[ps], "s")
-    #ax3.plot(range(iter),PSOsBestsId[ps], linestyle ="solid", linewidth = 0.8, c = line[0].get_color())
-    ax3.grid(True)
-    ax3.set_yticks([i+1 for i in range(swarmsize)])
+    axim.legend(loc="best")
+    figim.tight_layout(pad=2)
+    figim.savefig( os.path.join(root_path, "Relative improvements of the Bests.png"), bbox_inches='tight')
 
-fig3.tight_layout(pad=2)
-fig3.savefig(os.path.join(root_path,"Best_particle_id.png"), bbox_inches='tight')
+    # === 3 — Interparticle distances ===
 
-if bool(IDE) == True :
-    plt.show()
-try : pass
+
+    
+
+    fig1.tight_layout(pad=2)
+    fig1.savefig(os.path.join(root_path,"Interparticle_distances.png"), bbox_inches='tight')
+
+    # == Velocities
+
+    ax2[c].set_xlabel("iteration")
+    
+    fig2.tight_layout(pad=2)
+    # --- SAVE IN THE EXPERIMENT FOLDER ---
+    fig2.savefig(os.path.join(root_path,"PSOSVelocity_components.png"),
+                bbox_inches='tight')
+
+    # === 5 — Best particle ID ===
+    """ fig3.tight_layout(pad=2)
+    fig3.savefig(os.path.join(root_path,"Best_particle_id.png"), bbox_inches='tight')"""
    
 
+    if bool(IDE) == True :
+        
+        plt.show()
+   
 except Exception as e : 
     print("plot failed {}".format(e))
 # == END of the evaluations  == #
