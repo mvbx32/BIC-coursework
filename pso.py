@@ -230,16 +230,8 @@ class PSO :
                     C = np.diag(cval)*self.gamma
                     D = np.diag(dval)*self.delta
 
-                    mu = 0.1
-                    self.beta = 1.75
-                    self.gamma = 1.75
-                    self.delta = 0.5
-                    assert(mu>=0 and mu<= 1 )
-                    Omega1, Omega2 = self.beta, self.gamma + self.delta
-                    Omega = Omega1 + Omega2
-                    assert(Omega1 + Omega2 >=4)
 
-                    X = 2*mu /np.abs(2 - Omega - np.sqrt(Omega*(Omega-4)) )
+                   
 
                     Vinert, Vloc, Vinfo, Vglob = self.alpha * vel , B@(xstar - vector) , C@(xplus - vector) , D@(xmark - vector)
                     x.velocity =  Vinert + Vloc + Vinfo + Vglob
