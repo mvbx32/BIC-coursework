@@ -27,7 +27,7 @@ import argparse
 # ============= GPT 5 ================== #
 
 DEFAULTS = { 
-    "exp" : "Test",
+    "exp" : "Life_expectancy_Budget&Improvement",
     "swarmsize": 20,
     "alpha": 0.9,
     "beta": 1.25,

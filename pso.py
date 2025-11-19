@@ -267,13 +267,15 @@ class PSO :
                 for x in self.P : #                                      [l25]
                     vector = x.vector.copy()
                     x.vector +=  (self.epsilon*x.velocity) #      [l26]
-                    if (x.vector != self.Best).all() and x.life_expectancy <= 0 : 
-                        id = x.id
-                        self.P.remove(x)
-                        x_new = Particle(self.ANN_structure)
-                        x_new.id = id
-                        x_new.velocity = np.random.uniform(0,1,x_new.vector.shape)
-                        self.P.append(x_new)
+
+                    if not  self.ImprovementOfBest != []:
+                        if (x.vector != self.Best).all() and x.life_expectancy <= 0 and x.improv_x <= self.ImprovementOfBest : 
+                            id = x.id
+                            self.P.remove(x)
+                            x_new = Particle(self.ANN_structure)
+                            x_new.id = id
+                            x_new.velocity = np.random.uniform(0,1,x_new.vector.shape)
+                            self.P.append(x_new)
 
                         
                 #if Particle.best_fitness > criteria : break # [l27]    
