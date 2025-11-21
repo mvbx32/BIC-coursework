@@ -13,11 +13,42 @@ from tools import *
 from visualiser import compute_contributions,plot_contributions
 
 # ==           PSO          == 
-
+# AUTHOR : Maxime Vieillot 
 # "A specific requirement for this task is that the comments in the code indicate the corresponding
 # line numbers in the pseudocode [...]"
 # LINE NUMBERS ARE GIVEN AS [l number_line] e.g "#    {some tabulations spaces}  [l1]" (the 1rst line of the pseudo code : setting of the swarmsize)
+
+# Remark : all the '-- logs --..' / '-- {label} --' section are not essential.
+
 class PSO : 
+    """
+    class PSO 
+
+    That object compute and store all the PSO's variables (see method train).
+
+
+    PSO's arguments : 
+        alpha : float
+        beta
+        gamma
+        delta
+        epsi
+        ANNStructure : list to instantiate a Particle object (see Particle documentation)
+        AssessFitness : callable 
+        informants_number
+        setInformants : callable
+
+        max_iteration_number, 
+
+    other params :     
+        verbose = -1
+        path = '/temp/' : str : location to save plots by default
+
+        # to turn on / off the monitoring :
+        monitor = True 
+        show = True
+    
+    """
 
     def __init__(self, swarmsize, 
         alpha, 
@@ -39,7 +70,7 @@ class PSO :
         self.fitnessFunc = AssessFitness
         # == PSO parameters == 
         assert(swarmsize > 0 )
-        self.swarmsize = swarmsize #           #10 -100                           [l1]
+        self.swarmsize = swarmsize #           #10 -100                          [l1]
         
         self.alpha = alpha #                                                     [l2]
         self.beta = beta   #                                                     [l3]
@@ -360,18 +391,11 @@ class PSO :
         fig3.tight_layout(pad=2)
         fig3.savefig(os.path.join(self.path,"Best_particle_id.png"), bbox_inches='tight')
 
-        
         #decades, contributions= compute_contributions(self.BestPaternityHistory,self.swarmsize,self.max_iteration_number)
         #plot_contributions(contributions,decades)
         
         plt.show()
                 
-
-    
-
-       
-            
-
     
 
 if __name__ == "__main__" : 
