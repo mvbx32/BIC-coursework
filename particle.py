@@ -1,39 +1,33 @@
 #==================== particule.py   ==============#
 import numpy as np
 import random 
-from ANN_alone import ANN
+from ANN_alone import ANN, Layer
 import matplotlib as plt
-# WARNING and sources of mistakes / bugs
-# The best solution are stored as class Particle 
-# -> a multi task training (several experiments importing Particle at the same time) will fail
-# -> Particle class must be reset 
+
 
 from  data import *
 class Particle :
 
     """
 
-    Given an ANN structure, the Particule class provides a 
-    vector representation to tune the associated ANN 
-    with a PSO algorithm.
+    Given an ANN structure, the Particule class embodies a 
+    vector representation interpretable by a PSO training algorithm. 
+
+    #== Inputs ==#
+    ANN_structure : list : format = [neurons number, activation function name, ... ,neurons number, activation function name ]
+    e.g. with a single hidden layer ANN : Particle([8, "input", 6, "tanh", 1,"linear"]) <=> 8 inputs, 6 hidden layer -> tanh , 1 output ->linear 
+
+    Remark : this list take the input layer into account. "input" == "linear" (we take the inputs as they are)
 
     """
     # == Common variables == 
 
-    # ==   ANN     == 
-
     particleNumber = 0
 
     def reset():
-        # WARNING : reset the Particle class between two consecutives PSO executions
-
-        # ==   ANN     == 
-      
+        # WARNING : reset the Particle class between two consecutives PSO executions -> reboot the Ids
         Particle.ANN_activation = None 
         Particle.particleNumber = 0
-
-        # -- X! -- 
-        # np.array type
       
 
     
@@ -43,22 +37,22 @@ class Particle :
         self.id = Particle.particleNumber
 
         # init a random vector from a Random ANN
-
         self.ANN_structure = ANN_structure
         layer_sizes = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 0 ]
         activations = [  layerdim for i,layerdim in enumerate(ANN_structure) if i%2 == 1 ]
 
-        a = ANN(layer_sizes=layer_sizes, activations=activations)
-        size = a.get_params().shape #np.random.randn(size[0])
+        a = ANN(layer_sizes=layer_sizes, activations=activations) # initialises a random ANN
+        size = a.get_params().shape 
     
         self._vector = a.get_params().copy() 
         self._fitness = np.inf *-1
+
         # Instantiation of the ANN to compute the fitness
         self.ANN_model = ANN(layer_sizes=layer_sizes, activations=activations)
         self.ANN_model.set_params(self.vector)
         
         # Init of the class variables
-        
+        # Remark : all will be updated during the first Fitness Assessment (at the beginning of the PSO)
         self.velocity = np.zeros_like(self.vector)
 
         # -- X* --
@@ -68,9 +62,9 @@ class Particle :
         # -- X+ -- 
         self.best_informant =  self.vector  
         self._informants = [self.vector] 
-        self.informants_fitness = [self.fitness] # -1*np.inf
-        self.best_informant_fitness = self.fitness # -1*np.inf
-        # Remark : the fitnesses will be updated during the first Fitness Assessment (at the beginning of the PSO)
+        self.informants_fitness = [self.fitness]    # -1*np.inf
+        self.best_informant_fitness = self.fitness  # -1*np.inf
+        
         # == Stats == 
 
         self.pbests = []
@@ -106,7 +100,7 @@ class Particle :
     @vector.setter
     def vector(self,v):
         self._vector = v
-        # preparation of the ANN model for the fitness calculus
+        # preparation of the ANN model for the fitness computation
         self.ANN_model.set_params(v) #Particle.vector2ANN(self.vector)
  
 
@@ -136,7 +130,7 @@ class Particle :
         if new_fitness > self.best_informant_fitness : 
             self.best_informant = self.vector.copy()
             self.best_informant_fitness = new_fitness
-
+ 
         self.pbests.append(self.best_x) # 
         self.pbests_fitness.append(self._best_fitness)
 
@@ -180,12 +174,18 @@ class Particle :
 
   
 
+
+       
+        
+       
+    
+       
+        
   
-    def export(self): #TODO : complete
-        """
-        Export the vector as a .txt file. 
-        """
-        pass
+    
+
+
+
 
     
 

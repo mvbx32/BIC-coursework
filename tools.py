@@ -3,9 +3,8 @@ import numpy as np
 import random
 from data import Data
 
-
-#TODO : define a doctring, collect it with function.__doc__  and  save the formulas in a text file
-
+X_train, Y_train, X_test, Y_test = None, None, None, None
+from particle import Particle
 # == Parameters control == 
 
 
@@ -19,8 +18,6 @@ def LTV(t,tf, yi, yf):
 
 # == Fitness == 
 
-X_train, Y_train, X_test, Y_test = None, None, None, None
-from particle import Particle
 
 def MAE(X,Y,ANN_model):
     """
@@ -96,6 +93,8 @@ def KNN_andFitness(x,P, informants_number):
     """
     K nearest particles from x with respect to ||.||2 norm 
     including the fitness as position component.
+
+    Not tested...
     """
     assert(False) # Function to correct (formula)
     # The nearest_neigboors
@@ -105,21 +104,4 @@ def KNN_andFitness(x,P, informants_number):
     return informants, [float(x.fitness) for x in informants] 
 
 
-def KNN_andFitness2(x,P, informants_number):
-    """
-    K nearest particles from x with respect to ||.||2 norm 
-    including the fitness as position component.
-    """
-    assert(False) # Function to correct (formula)
-    # The nearest_neigboors
-    nearestlist = P.copy()
-    nearestlist.sort(key = lambda x2 : np.linalg.norm(x2.vector - x.vector,2))
-    informants = nearestlist[:informants_number]
-    return informants, [float(x.fitness) for x in informants] 
-
-
-
-#==                 LOGS                ==
-def logexport():
-    pass
 #==================== tools.py  | END ==============#
