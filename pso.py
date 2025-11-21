@@ -4,7 +4,6 @@ import os
 import random 
 import numpy as np
 import matplotlib.pyplot as plt
-#plt.style.use('ggplot')
 plt.style.use("fivethirtyeight")
 from particle import Particle
 from ANN_alone import * 
@@ -12,19 +11,12 @@ import tqdm
 import xlrd
 from tools import * 
 from visualiser import compute_contributions,plot_contributions
-# TODO : 
 
-# Set a default activation function as linear when instantiating an ANN
-# Looks for biblio ressources to better understand how could be modeled the ANN : linear ? 
-# How to test the PSO ???
-#       - Compare a linear regression model with a linear ANN based PSO algorithm 
-#       - same with forward-backward
-# Additional features : sub class of particle to encode the activation function type
-# Report on the code structure
-# Set research Parameters as default
-# -     Setup logs + Saving of intermediar / final models 
 # ==           PSO          == 
 
+# "A specific requirement for this task is that the comments in the code indicate the corresponding
+# line numbers in the pseudocode [...]"
+# LINE NUMBERS ARE GIVEN AS [l number_line] e.g "#    {some tabulations spaces}  [l1]" (the 1rst line of the pseudo code : setting of the swarmsize)
 class PSO : 
 
     def __init__(self, swarmsize, 
@@ -47,9 +39,9 @@ class PSO :
         self.fitnessFunc = AssessFitness
         # == PSO parameters == 
         assert(swarmsize > 0 )
-        self.swarmsize = swarmsize #           #10 -100                              [l1]
+        self.swarmsize = swarmsize #           #10 -100                           [l1]
         
-        self.alpha = alpha #         /! rule of thumb (Somme might be 4 )       [l2]
+        self.alpha = alpha #                                                     [l2]
         self.beta = beta   #                                                     [l3]
         self.gamma = gamma  #                                                    [l4]
         self.delta = delta    #                                                  [l5]
@@ -65,7 +57,7 @@ class PSO :
 
         # == results == 
         self.P = []                                                          
-        self.Best       = None #                                                       [l10]
+        self.Best       = None # will contain the vector of the best        [l10]                                           [l10]
         layer_sizes = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 0 ]
         activations = [  layerdim for i,layerdim in enumerate(self.ANN_structure) if i%2 == 1 ]
         self.BestANN =   ANN(layer_sizes=layer_sizes, activations=activations)
@@ -145,41 +137,37 @@ class PSO :
         Particle.reset() # reset of the particle Ids buffer
         #--------------------------------------------------
 
-        self.P = []                                                             #[l7]
-        for loop in range(self.swarmsize):                                      #[l8]
+        self.P = []                                                             # [l7]
+        for loop in range(self.swarmsize):                                      # [l8]
             p = Particle(self.ANN_structure)
-            p.velocity = np.random.random()
-            self.P.append(p)                                                    #[l9] # new random particle  
+            p.velocity = np.random.uniform(0,1, p.vector.shape[0])              # [l9] # new random particle  
+            self.P.append(p)                                                    # [l9] # new random particle  
 
         t0 = time.time()
         it = 0 
 
-        BestId = None
+        BestId = None                                                           
 
         with tqdm.tqdm(total = self.max_iteration_number ) as bar : 
 
-            for t in range(self.max_iteration_number): #                          [l11]
+            for t in range(self.max_iteration_number):                          # [l11]
                 # == Determination of the Best == 
                 
+                # -- logs ---------------
                 if (t+1)%10 == 0 : 
                     bar.update(t)
-
+                
                 RelativeImprovements_t = []
-                for x in self.P :               #                                      [l12]
-                    """
-                    if x.life_expectancy <= 0 and x.vector not in self.BestParticle.informants : 
-                        id = x.id
-                        x = Particle(self.ANN_structure)
-                        x.id = id
-                        print('Reborn')
-                    """
-                    x.assessFitness(self.fitnessFunc) #                              [l13]
-                    if  x.fitness > self.bestFitness: # [l14]
+                #------------------------
+
+                for x in self.P :                                                # [l12]
+                    x.assessFitness(self.fitnessFunc)                           #  [l13]
+                    if  x.fitness > self.bestFitness or self.Best == None :      # [l14]
                         BestId = x.id
                         self.BestParticle = x.copy()
                         self.bestFitness = x.fitness
                         
-                        self.Best = x.vector.copy()#                                  [l15]
+                        self.Best = x.vector.copy()                             # [l15]
                         self.BestANN.set_params(self.Best)
                     
                         # -- logs ----------------------------
@@ -199,63 +187,37 @@ class PSO :
                 #---------------------------------------------------------------------------------------
 
                 # == Determination of each velocities == 
-                for j,x in enumerate(self.P) : # [l16]
+                for j,x in enumerate(self.P) :              # [l16]
                     vel = x.velocity
                     vector = x.vector.copy()
                     new_vel =  x.velocity
 
                     # == Update of the fittest per catergory (x*,xplus, x!) vector type ====
-                    xstar = x.best_x         #               [l17]
+                    xstar = x.best_x                        # [l17]
                     
                     # definition of the informants
                     x.x_informants = self.setInformants(x,self.P,self.informants_number) 
 
                     xplus = np.zeros_like(xstar)
                     if self.informants_number != 0 :
-                        xplus = x.best_informant   #               [l18]
+                        xplus = x.best_informant            # [l18]
                     
-                    xmark = self.Best #                            [l19]
+                    xmark = self.Best                       # [l19]
                 
-                    #self.alpha = 0.4 + (0.4-0.9)*(t-self.max_iteration_number)/self.max_iteration_number # adaptative  wmax = 0.9 , wmin = 0.4 [Sangputa]
+
                     # -- logs -----------------------------------------------------
                     if self.monitor : x_xi_VelComponentsMatrix = np.zeros((4,x.vector.shape[0]))
-
+                    
+                    # [l21], [l22], [l23] 
                     bval , cval, dval = np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0]), np.random.uniform(0,1,size = x.vector.shape[0])
-                    
-                    
-                    
-                    
                 
-                    B = np.diag(bval)*self.beta
+                    B = np.diag(bval)*self.beta 
                     C = np.diag(cval)*self.gamma
                     D = np.diag(dval)*self.delta
 
+                    Vinert, Vloc, Vinfo, Vglob = self.alpha * vel , B@(xstar - vector) , C@(xplus - vector) , D@(xmark - vector) #  [l24]
+                    x.velocity =  Vinert + Vloc + Vinfo + Vglob                                                                  #  [l24]
 
-                   
-
-                    Vinert, Vloc, Vinfo, Vglob = self.alpha * vel , B@(xstar - vector) , C@(xplus - vector) , D@(xmark - vector)
-                    x.velocity =  Vinert + Vloc + Vinfo + Vglob
-
-                    """
-                    for i in range(x.vector.shape[0]) : #                     [l20] 
-                        b = random.random()* self.beta   #               [l21]
-                        c = random.random() * self.gamma  #               [l22]
-                        d = random.random() * self.delta  #               [l23]
-                       
-                        #              self inertia             best version of x (~local fittest)          social term (informants)                global term                    
-                        x.velocity[i] = self.alpha*vel[i]   +       b* (xstar[i] - vector[i] )           +  c* (xplus[i] - vector[i])        + d * (xmark[i] - vector[i])    # [l24]
-                        
-                        # -- logs ----------------------------
-                        if self.monitor : 
-                            vels_i = np.abs(np.array( [self.alpha*vel[i] , b* (xstar[i] - vector[i] ) ,c*  (xplus[i] - vector[i]) ,d* (xmark[i] - vector[i])] )).T
-                            #    v1         v2   ..    Vn
-                            #    v1Iner  v2Inert ... VnInert
-                            #     ...
-                            #    V1Glob  .........
-                            # (4,vector dimension)
-                            x_xi_VelComponentsMatrix[:,i] = vels_i
-                        #-------------------------------------
-                    """
                     # -- logs ----------------------------
                     # x_xi ... size (4, components)
                     # (4,number of components)
@@ -270,10 +232,10 @@ class PSO :
                 
                 
                 # == Mutation ==   
-                for x in self.P : #                                      [l25]
+                for x in self.P :                               # [l25]
                     vector = x.vector.copy()
-                    x.vector +=  (self.epsilon*x.velocity) #      [l26]
-                
+                    x.vector +=  (self.epsilon*x.velocity)      # [l26]
+                        
                 #if Particle.best_fitness > criteria : break # [l27]    
 
                 # -- logs ----------------------------
@@ -281,7 +243,8 @@ class PSO :
                     self.BestPaternityHistory.append(BestId)
                     self.BestSolutions.append(self.Best)
                     self.BestFitnesses.append(self.bestFitness)
-                    self.ImprovementOfBest.append(self.BestParticle.improv_x)
+                    self.ImprovementOfBest.append( (self.BestFitnesses[-1] - self.BestFitnesses[-2])/abs(self.BestFitnesses[-1] + self.BestFitnesses[-2 ]) if len(self.BestFitnesses)>=2 and abs(self.BestFitnesses[-1] + self.BestFitnesses[-2 ]) !=0 else 0 )
+
                     self.GlobalSelfImprovementAVG.append(np.mean(RelativeImprovements_t))
                     self.GlobalSelfImprovementSTD.append(np.std(RelativeImprovements_t))
                     self.globalVelMeanComponents[:,t] = np.mean(particleVelMeanComponentsMatrix_t, axis = 1)
@@ -298,11 +261,12 @@ class PSO :
         if self.show : 
             print("== Plot == ")
             #self.plot()
+
             try : pass
             except Exception as e : print("Plot failed " ,e)
             finally :pass
 
-
+        # [l28] : 
         return self.Best, self.bestFitness, self.score_train, self.score_test , self.run_time 
 
 
