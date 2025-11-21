@@ -108,41 +108,20 @@ class ANN:
             return True 
         return False
     
-        """
-        Equivalently : 
 
-        m = True
-        i = 0
-        for layer in self.layers :
-            if layer != ANN2.layers[i]:
-            
-                m = False
-            i+=1
-        return m
-        """
     def copy(self):
         clone = ANN(layer_sizes=self.layer_sizes, activations= self.activations)
         l = 0
         for layer in self.layers : 
             clone.layers[l] = layer.copy()
             l+=1
-        """
-        try with set params
-        """
+    
         return clone
 
     
     def forward(self, x):
 
         for layer in self.layers:
-            #           Neuron1     ...        NeuronN
-            #                                            Weight1
-            # 
-            #                                                                 @   ( x1 x2 ... xK) + (b1 b2 ... bB)
-            #                                                ...
-
-            #                                           WeightW
-
             x = np.dot(x, layer.W) + layer.b
             x = layer.activation(x)
         return x
