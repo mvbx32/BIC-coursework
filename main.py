@@ -4,9 +4,9 @@ from pso import *
 from tools import * 
 from export_tools import *
 
-# TODO : 
 
 
+# ============= GPT 5 ================== #
 
 # AI generating rules : Please strictly respect the following rules
 # 1.Don't modify the existing code without permission
@@ -24,7 +24,6 @@ import argparse
 # ===========================
 
 
-# ============= GPT 5 ================== #
 
 DEFAULTS = { 
     "exp" : "TestNPY",
@@ -121,14 +120,7 @@ ax1.set_ylabel("distance")
 
 fig2, ax2 = plt.subplots(4,1)
 
-"""
-fig3, ax3 = plt.subplots()
-ax3.set_title("Id of the best particle")
-ax3.set_ylim([0, swarmsize + 1])
-ax3.set_xlabel("iteration")
-ax3.set_ylabel("id")
 
-"""
 
 if __name__ == "__main__" : 
 
@@ -172,14 +164,16 @@ if __name__ == "__main__" :
     w  = alpha
     C1 = beta
     C2 = gamma + delta
-    #print((C1 + C2)/2  - 1)
+
+    # Convergence criteria 
     assert(1>w and w>((C1 + C2)/2  - 1) and (C1 + C2)/2  - 1 >=0 )
 
     # ////////////// Params to increment //////////////////////
     max_iteration_numberList = [max_iteration_number]
     swarmsizeList = [swarmsize]
 
-    paramsList = [delta]
+    # Defines the values of the param to increment
+    paramsList = [5,8,10] 
     #__________________________________________________________________________________________________
 
     # -----------                   Creation of an Arborescence                  ---------------- #
@@ -197,15 +191,8 @@ if __name__ == "__main__" :
    
     # -----------                                                                ---------------- #
 
-    
-
-    
 
     pso_id = 0 
-
-   
-
-
 
     PSO_number = len(paramsList) * AttemptNumber
     PSOsGlobalVelMeanComponents = np.zeros((4,max_iteration_number,PSO_number))
@@ -213,7 +200,7 @@ if __name__ == "__main__" :
     PSOsBestImprov = np.zeros((PSO_number,max_iteration_number))
     PSOsBestFitnesses = np.zeros((PSO_number,max_iteration_number))
     
-    PSOsBestsId = [] #np.zeros((PSO_number,iter))
+    PSOsBestsId = [] 
 
     step = 0
     for s, param2change in enumerate(paramsList) : 
@@ -256,9 +243,11 @@ if __name__ == "__main__" :
             
             
             # ////////////// Params to increment //////////////////////
+            # Modify here the param to increment : e.g for swarmsize -> pso.swarmsize = param2change
             pso.max_iteration_number= max_iteration_number
             pso.swarmsize = swarmsize
-            pso.delta = param2change
+            pso.informants_number = param2change
+
             #  == Results ==============================================================
             best_solution, best_fitness, score_train, score_test, run_time = pso.train()  
             
@@ -273,18 +262,6 @@ if __name__ == "__main__" :
             Train.append(score_train)
             Test.append(score_test)
             Time.append(run_time)
-
-            """
-            
-                if attempt == 0 :
-                params = { 
-                            "ANNStructure" :  str(ANNStructure) , "swarmsize": str(swarmsizeList),"AssessFitness" : str(AssessFitness.__doc__), "max_iteration_number" : str(max_iteration_numberList),
-                            "alpha" : str(alpha),"beta"  :  str(beta), "gamma" : str(gamma),  "delta" : str(delta),   "epsi"  : str(epsi),   
-                            "Informants" : str(Informants),
-                            "informants_number" :str(informants_number)}
-                save_pso_params(pso_dir, params)
-            
-            """
 
             
 
@@ -337,35 +314,18 @@ if __name__ == "__main__" :
 
 
         axim.plot(iterations,PSOsBestImprovAVG, linestyle ="solid", label=str(param2change) if len(paramsList)>0 else "") #
-        """
-        axim.fill_between(iterations,
-            np.array(PSOsBestImprovAVG)-np.array(PSOsBestImprovSTD),
-            np.array(PSOsBestImprovAVG)+np.array(PSOsBestImprovSTD),
-            color="#BBE4F8",
-            label="Standard deviation")
-
-        """
+     
         
-
-        #ax1.plot(range(max_iteration_number),np.max(PSOsGLobalDistance, axis = 2)[2,:] , label="max", linewidth= 0.8)
         ax1.plot(range(max_iteration_number),np.mean(PSOsGLobalDistance[:,:,s:s+AttemptNumber], axis = 2)[1,:], label=str(param2change) if len(paramsList)>0 else "", linewidth= 0.8) ; 
-        #ax1.plot(range(max_iteration_number),np.min(PSOsGLobalDistance, axis = 2)[0,:], label="min", linewidth= 0.8)
-
+   
         for c, component in enumerate(["inertial","local","social","global" ]) :
             ax2[c].title.set_fontsize(0.25 + 2)
             ax2[c].xaxis.label.set_fontsize(0.25)
             ax2[c].yaxis.label.set_fontsize(0.25)
             ax2[c].set_title("mean(|{} velocity|)".format(component))
-            ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsAVG[c,:], label=str(param2change) if len(paramsList)>0 else "", linewidth=0.8)
-            #ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsMIN[c,:], label="MIN", linewidth=0.8)
-            #ax2[c].plot(range(max_iteration_number), PSOsGlobalVelMeanComponentsMAX[c,:], label="MAX", linewidth=0.8)
+            ax2[c].plot(np.log(np.array(range(max_iteration_number))), PSOsGlobalVelMeanComponentsAVG[c,:], label=str(param2change) if len(paramsList)>0 and c == 0 else None, linewidth=0.8)
+     
 
-        """for ps in range(PSO_number):
-            line = ax3.plot(range(max_iteration_number),PSOsBestsId[ps], "s")
-            #ax3.plot(range(iter),PSOsBestsId[ps], linestyle ="solid", linewidth = 0.8, c = line[0].get_color())
-            ax3.grid(True)
-            ax3.set_yticks([i+1 for i in range(swarmsize)])
-        """
         try : pass
             
             
@@ -429,32 +389,5 @@ try :
 except Exception as e : 
     print("plot failed {}".format(e))
 # == END of the evaluations  == #
-
-
-
-
-
-
-
-
-# arborescence synthesis 
-
-   #/experiments
-    #   /task2_M_2003_05_07
-    #       ExperimentsDetails.txt
-    #       results.csv # comparison of the performances of all the PSOs : PSO id, parameters of interest value, best fitness, MAE on the train set, MAE on the test set (from evaluation), execution_time
-    #       /PSO_1 # first PSO executed
-    #        ...
-    #       /PSO_n 
-    #           PSOparams.txt # params + performance 
-    #           PSOsolution.txt # vector of the final fittest solution
-    #           /models
-    #               vector0.txt #save the vector of the best solution each k step
-    
-    #               ...
-    #               vectork.txt
-    #               ...
-    #               vectorkn.txt
-    #  
 Particle.reset()
 #==================== main.py  | END ==============#
